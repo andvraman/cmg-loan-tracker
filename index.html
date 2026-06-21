@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAMOJA CMG Tracker — Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1a6b3c;--green-light:#e8f5ee;--green-mid:#2d8a52;--green-dark:#134f2d;
+  --amber:#b45309;--amber-light:#fef3c7;
+  --red:#b91c1c;--red-light:#fee2e2;
+  --blue:#1d4ed8;--blue-light:#eff6ff;
+  --gray50:#f9fafb;--gray100:#f3f4f6;--gray200:#e5e7eb;--gray400:#9ca3af;
+  --gray600:#4b5563;--gray800:#1f2937;--gray900:#111827;
+  --text:#111827;--muted:#6b7280;--border:#e5e7eb;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);background:#f0f4f0;min-height:100vh}
+.shell{max-width:800px;margin:0 auto;padding:0 0 4rem}
+.topbar{background:var(--green-dark);color:#fff;padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.topbar-brand{font-size:15px;font-weight:700}
+.topbar-role{font-size:12px;background:rgba(255,255,255,.15);padding:3px 10px;border-radius:999px}
+.screen{display:none;padding:1.25rem}.screen.active{display:block}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.875rem}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:1rem}
+.stat{background:var(--gray50);border:1px solid var(--border);border-radius:var(--radius);padding:.875rem 1rem}
+.stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.stat-val{font-size:19px;font-weight:700;color:var(--text)}
+.stat-val.good{color:#15803d}.stat-val.warn{color:#b45309}.stat-val.bad{color:#b91c1c}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--gray600);margin-bottom:4px}
+.field input,.field select{width:100%;padding:8px 11px;border:1px solid var(--gray200);border-radius:var(--radius);font-size:14px;color:var(--text);background:#fff}
+.field input:focus,.field select:focus{outline:none;border-color:var(--green-mid);box-shadow:0 0 0 3px rgba(45,138,82,.12)}
+.field input[readonly]{background:var(--gray50);color:var(--gray600)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:1px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:var(--gray100)}.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+.btn-primary:hover{background:var(--green-mid);border-color:var(--green-mid)}
+.btn-sm{padding:5px 11px;font-size:13px}
+.btn-danger{color:var(--red);border-color:#fecaca}.btn-danger:hover{background:var(--red-light)}
+.btn-full{width:100%;justify-content:center;padding:11px}
+.tabs{display:flex;gap:4px;margin-bottom:1.25rem;background:var(--gray100);padding:4px;border-radius:var(--radius)}
+.tab{flex:1;padding:7px 12px;border-radius:6px;border:none;background:transparent;color:var(--muted);font-size:13px;font-weight:500;cursor:pointer;text-align:center}
+.tab.active{background:#fff;color:var(--green-dark);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
+.badge-ok{background:#dcfce7;color:#15803d}.badge-fail{background:#fee2e2;color:#b91c1c}
+.badge-warn{background:#fef3c7;color:#b45309}.badge-gray{background:var(--gray100);color:var(--muted)}
+.alert{padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-bottom:1rem}
+.alert-warn{background:var(--amber-light);color:var(--amber);border:1px solid #fcd34d}
+.alert-info{background:var(--blue-light);color:var(--blue);border:1px solid #bfdbfe}
+.progress-bar{height:8px;background:var(--gray200);border-radius:999px;overflow:hidden;margin:.5rem 0}
+.progress-fill{height:100%;background:var(--green-mid);border-radius:999px;transition:width .4s}
+.progress-fill.warn{background:var(--amber)}.progress-fill.bad{background:var(--red)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{text-align:left;padding:8px 10px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--border);white-space:nowrap}
+.tbl td{padding:9px 10px;border-bottom:1px solid var(--gray100);vertical-align:middle}
+.tbl tr.clickable:hover td{background:var(--gray50);cursor:pointer}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.mtg-card{border:1px solid var(--border);border-radius:var(--radius);padding:1rem;margin-bottom:.75rem;background:#fff}
+.mtg-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;gap:8px}
+.mtg-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px}
+.mtg-item span:first-child{color:var(--muted);display:block;font-size:12px}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;background:#f0f4f0}
+.login-box{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:2rem;width:100%;max-width:420px}
+.role-card{border:2px solid var(--border);border-radius:var(--radius);padding:1rem;cursor:pointer;transition:all .15s;background:#fff;margin-bottom:10px}
+.role-card:hover{border-color:var(--green-mid);background:var(--green-light)}
+.role-card.selected{border-color:var(--green);background:var(--green-light)}
+.role-card-title{font-weight:700;font-size:14px;margin-bottom:2px}
+.role-card-desc{font-size:12px;color:var(--muted)}
+.q-hint{font-size:13px;margin-bottom:.75rem;padding:7px 11px;border-radius:var(--radius)}
+.q-hint.ok{background:#dcfce7;color:#15803d}.q-hint.fail{background:#fee2e2;color:#b91c1c}
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--muted);font-size:14px}
+.back-btn{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:600;cursor:pointer;margin-bottom:1rem;background:none;border:none;padding:0}
+.sep{border:none;border-top:1px solid var(--border);margin:1rem 0}
+.fi-pill{font-size:12px;color:var(--green-dark);background:var(--green-light);padding:2px 8px;border-radius:999px;font-weight:600}
+.offline-banner{background:#fef3c7;color:#92400e;border-bottom:1px solid #fcd34d;padding:6px 1.25rem;font-size:12px;text-align:center;display:none}
+.otp-digits{display:flex;gap:10px;justify-content:center;margin:1rem 0}
+.otp-digits input{width:52px;height:56px;text-align:center;font-size:24px;font-weight:700;border:2px solid var(--gray200);border-radius:var(--radius);color:var(--text)}
+.otp-digits input:focus{border-color:var(--green-mid);outline:none;box-shadow:0 0 0 3px rgba(45,138,82,.12)}
+.step-indicator{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem}
+.step{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.step.active{color:var(--green-dark);font-weight:600}.step.done{color:var(--green)}
+.step-dot{width:24px;height:24px;border-radius:50%;background:var(--gray200);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.step.active .step-dot{background:var(--green);color:#fff}
+.step.done .step-dot{background:var(--green-light);color:var(--green)}
+.step-line{flex:1;height:1px;background:var(--gray200)}
+/* DEMO RESET BANNER */
+.demo-banner{background:var(--green-dark);color:#fff;border-radius:var(--radius);padding:.875rem 1rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.demo-banner-text{font-size:13px;line-height:1.5}
+.demo-banner-text strong{display:block;font-size:14px;margin-bottom:2px}
+.btn-reset{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);font-size:13px;padding:6px 14px;border-radius:var(--radius);cursor:pointer;font-weight:600;white-space:nowrap;transition:background .15s}
+.btn-reset:hover{background:rgba(255,255,255,.25)}
+.reset-confirm{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-bottom:1rem;text-align:center}
+.reset-confirm h3{color:var(--red);margin-bottom:.5rem}
+.reset-confirm p{font-size:14px;color:var(--muted);margin-bottom:1rem}
+</style>
+</head>
+<body>
+
+<div class="offline-banner" id="ob1">⚠ Offline — data saved to this device.</div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.5rem">
+      <div style="width:44px;height:44px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:800;flex-shrink:0">P</div>
+      <div>
+        <div style="font-size:18px;font-weight:800;color:var(--green-dark)">PAMOJA CMG</div>
+        <div style="font-size:12px;color:var(--muted)">External loan tracker · Tanzania</div>
+      </div>
+    </div>
+
+    <!-- DEMO RESET BANNER on login screen -->
+    <div class="demo-banner">
+      <div class="demo-banner-text">
+        <strong>Demo mode</strong>
+        10 mock CMGs pre-loaded. Any changes persist during this session.
+      </div>
+      <button class="btn-reset" onclick="confirmReset()">↺ Reset demo</button>
+    </div>
+
+    <div class="step-indicator">
+      <div class="step active" id="si-1"><div class="step-dot">1</div>Role</div>
+      <div class="step-line"></div>
+      <div class="step" id="si-2"><div class="step-dot">2</div>Identity</div>
+      <div class="step-line"></div>
+      <div class="step" id="si-3"><div class="step-dot">3</div>Verify</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="login-step1">
+      <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">Select your role</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Only registered users may access this system.</div>
+      <div class="role-card" onclick="selectRole('chair',this)">
+        <div class="role-card-title">Chairperson</div>
+        <div class="role-card-desc">Log meetings for your registered CMG</div>
+      </div>
+      <div class="role-card" onclick="selectRole('lga',this)">
+        <div class="role-card-title">LGA Officer</div>
+        <div class="role-card-desc">View all groups in your ward</div>
+      </div>
+      <div class="role-card" onclick="selectRole('fi',this)">
+        <div class="role-card-title">FI Lender</div>
+        <div class="role-card-desc">View groups you have disbursed loans to</div>
+      </div>
+      <p id="s1-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+      <button class="btn btn-primary btn-full" onclick="goStep2()" style="margin-top:.5rem">Continue →</button>
+
+      <!-- RESET CONFIRM (inline, hidden by default) -->
+      <div id="reset-confirm-box" class="reset-confirm" style="display:none;margin-top:1rem">
+        <h3>Reset demo data?</h3>
+        <p>This will clear all changes made during this session and restore the original 10 mock CMGs with their pre-loaded meeting history.</p>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="btn" onclick="cancelReset()">Cancel</button>
+          <button class="btn btn-danger" onclick="doReset()">Yes, reset everything</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="login-step2" style="display:none">
+      <div id="chair-identity">
+        <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">Identify your group</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Select your location, then your CMG number.</div>
+        <div class="field"><label>Region</label><select id="sel-region" onchange="onRegion()"><option value="">— Select region —</option></select></div>
+        <div class="field"><label>District Council</label><select id="sel-district" onchange="onDistrict()" disabled><option value="">— Select district —</option></select></div>
+        <div class="field"><label>Ward</label><select id="sel-ward" onchange="onWard()" disabled><option value="">— Select ward —</option></select></div>
+        <div class="field"><label>Village</label><select id="sel-village" onchange="onVillage()" disabled><option value="">— Select village —</option></select></div>
+        <div class="field"><label>CMG Number</label><select id="sel-cmgnum" onchange="onCmgNum()" disabled><option value="">— Select CMG number —</option></select></div>
+        <div class="row2">
+          <div class="field"><label>CMG Name</label><input type="text" id="auto-name" readonly placeholder="Auto-filled"></div>
+          <div class="field"><label>Chairperson</label><input type="text" id="auto-chair" readonly placeholder="Auto-filled"></div>
+        </div>
+        <div class="field"><label>Registered phone number</label><input type="tel" id="chair-phone" placeholder="e.g. 0754643521" maxlength="12"></div>
+      </div>
+      <div id="lga-identity" style="display:none">
+        <div style="font-weight:700;font-size:15px;margin-bottom:.75rem">LGA Officer</div>
+        <div class="field"><label>Region</label><select id="lga-region"><option value="">— Select —</option></select></div>
+        <div class="field"><label>District Council</label><select id="lga-district"><option value="">— Select —</option></select></div>
+        <div class="field"><label>Ward</label><input type="text" id="lga-ward" placeholder="Your ward name"></div>
+        <div class="field"><label>Your name</label><input type="text" id="lga-name" placeholder="Full name"></div>
+        <div class="field"><label>Phone number</label><input type="tel" id="lga-phone" placeholder="e.g. 0712345678"></div>
+      </div>
+      <div id="fi-identity" style="display:none">
+        <div style="font-weight:700;font-size:15px;margin-bottom:.75rem">FI Lender</div>
+        <div class="field"><label>Institution</label>
+          <select id="fi-institution">
+            <option value="">— Select —</option>
+            <optgroup label="Commercial banks"><option>CRDB Bank</option><option>NMB Bank</option><option>Stanbic Bank Tanzania</option><option>Absa Bank Tanzania</option><option>Exim Bank Tanzania</option><option>NBC Bank</option><option>Azania Bank</option><option>BOA Tanzania</option><option>Diamond Trust Bank Tanzania</option><option>I&amp;M Bank Tanzania</option></optgroup>
+            <optgroup label="Microfinance institutions"><option>FINCA Tanzania</option><option>AccessBank Tanzania</option><option>Letshego Tanzania</option><option>Tujijenge Tanzania</option><option>BRAC Tanzania Finance</option><option>VisionFund Tanzania</option><option>Akiba Commercial Bank</option></optgroup>
+            <optgroup label="Government / apex"><option>PASS Trust</option><option>Tanzania Agricultural Development Bank (TADB)</option><option>TIB Development Bank</option><option>SIDO</option></optgroup>
+          </select>
+        </div>
+        <div class="field"><label>Your name</label><input type="text" id="fi-name" placeholder="Full name"></div>
+        <div class="field"><label>Phone number</label><input type="tel" id="fi-phone" placeholder="e.g. 0712345678"></div>
+      </div>
+      <p id="s2-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="goStep1()">← Back</button>
+        <button class="btn btn-primary btn-full" onclick="goStep3()">Send OTP</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="login-step3" style="display:none">
+      <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">Verify your identity</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:.5rem" id="otp-msg"></div>
+      <div class="alert alert-info"><strong>Demo mode:</strong> Any 4-digit code is accepted.</div>
+      <div class="otp-digits">
+        <input type="tel" maxlength="1" id="otp0" oninput="otpMove(0)" onkeydown="otpBack(0,event)">
+        <input type="tel" maxlength="1" id="otp1" oninput="otpMove(1)" onkeydown="otpBack(1,event)">
+        <input type="tel" maxlength="1" id="otp2" oninput="otpMove(2)" onkeydown="otpBack(2,event)">
+        <input type="tel" maxlength="1" id="otp3" oninput="otpMove(3)" onkeydown="otpBack(3,event)">
+      </div>
+      <p id="s3-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+      <button class="btn btn-primary btn-full" onclick="doVerify()">Verify and enter</button>
+      <div style="text-align:center;margin-top:1rem">
+        <button class="btn btn-sm" style="border:none;color:var(--green)" onclick="goStep2()">← Back</button>
+        <span style="font-size:12px;color:var(--muted);margin:0 8px">·</span>
+        <button class="btn btn-sm" style="border:none;color:var(--green)" onclick="resendOtp()">Resend OTP</button>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-top:1.25rem;text-align:center">PAMOJA · Prototype · No real authentication · Data stored in this browser</p>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell" style="display:none">
+  <div class="topbar">
+    <div class="topbar-brand">PAMOJA CMG Tracker</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="topbar-role" id="topbar-label"></span>
+      <button class="btn btn-sm" style="color:#fff;border-color:rgba(255,255,255,.25);background:transparent" onclick="doLogout()">Log out</button>
+    </div>
+  </div>
+  <div class="offline-banner" id="ob2">⚠ Offline — data saved locally.</div>
+
+  <!-- SETUP -->
+  <div id="screen-setup" class="screen">
+    <div style="padding:1.5rem 0 .5rem">
+      <div style="font-size:18px;font-weight:700;color:var(--green-dark);margin-bottom:4px">Complete group setup</div>
+      <div style="font-size:13px;color:var(--muted)">CMG details pre-filled from register. Confirm loan details to continue.</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Group profile (read-only from register)</div>
+      <div class="row2">
+        <div class="field"><label>CMG Number</label><input type="text" id="su-cmgnum" readonly></div>
+        <div class="field"><label>CMG Name</label><input type="text" id="su-name" readonly></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Ward</label><input type="text" id="su-ward" readonly></div>
+        <div class="field"><label>Village</label><input type="text" id="su-village" readonly></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Chairperson</label><input type="text" id="su-chair" readonly></div>
+        <div class="field"><label>Lending FI</label><input type="text" id="su-fi" readonly></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Total members registered *</label><input type="number" id="su-members" min="1" placeholder="e.g. 25"></div>
+        <div class="field"><label>Quorum threshold *</label>
+          <select id="su-quorum"><option value="50">50%</option><option value="60">60%</option><option value="67">67% (two-thirds)</option><option value="75">75%</option><option value="80" selected>80%</option><option value="100">100%</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">External loan details</div>
+      <div class="row2">
+        <div class="field"><label>Loan amount (TZS) *</label><input type="number" id="su-loan" placeholder="0"></div>
+        <div class="field"><label>Disbursement date</label><input type="date" id="su-loandate"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Total repayment due (TZS) *</label><input type="number" id="su-totaldue" placeholder="0"></div>
+        <div class="field"><label>Repayment deadline</label><input type="date" id="su-deadline"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveSetup()">Save and open tracker</button>
+    <p id="su-err" style="color:var(--red);font-size:13px;margin-top:.5rem;display:none"></p>
+  </div>
+
+  <!-- CHAIR MAIN -->
+  <div id="screen-chair" class="screen">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--green-dark)" id="c-title"></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px" id="c-sub"></div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="exportCSV()">↓ CSV</button>
+        <button class="btn btn-sm" onclick="goEditSetup()">⚙ Edit</button>
+      </div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" onclick="chairTab('dash',this)">Dashboard</button>
+      <button class="tab" onclick="chairTab('log',this)">Log meeting</button>
+      <button class="tab" onclick="chairTab('hist',this)">History</button>
+    </div>
+    <div id="ct-dash"><div id="c-dash-content"></div></div>
+    <div id="ct-log" style="display:none">
+      <div class="card">
+        <div class="card-title">Meeting details</div>
+        <div class="row2">
+          <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
+          <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0" oninput="qHint()"></div>
+        </div>
+        <div id="l-qhint"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Collections this meeting (TZS)</div>
+        <div class="row2">
+          <div class="field"><label>Savings contributions</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
+          <div class="field"><label>Member repayments collected</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
+        </div>
+        <div class="field"><label>Loans disbursed to members from external loan</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Remittance to lender</div>
+        <div class="alert alert-info" style="margin-bottom:.875rem">Only fill this if the group actually transferred funds to the lender on this date.</div>
+        <div class="field"><label>Amount remitted to lender (TZS)</label><input type="number" id="l-repaid" min="0" placeholder="0"></div>
+      </div>
+      <div class="field"><label>Notes (optional)</label><input type="text" id="l-notes" placeholder="Any remarks"></div>
+      <button class="btn btn-primary btn-full" onclick="logMeeting()">Save meeting record</button>
+      <p id="l-err" style="color:var(--red);font-size:13px;margin-top:.5rem;display:none"></p>
+      <p id="l-ok" style="color:#15803d;font-size:13px;margin-top:.5rem;display:none"></p>
+    </div>
+    <div id="ct-hist" style="display:none"><div id="c-hist-content"></div></div>
+  </div>
+
+  <!-- OBSERVER -->
+  <div id="screen-observer" class="screen">
+    <div style="margin-bottom:.75rem">
+      <div style="font-size:17px;font-weight:700;color:var(--green-dark)" id="obs-title"></div>
+      <div style="font-size:13px;color:var(--muted)" id="obs-sub"></div>
+    </div>
+    <div id="obs-list-view">
+      <div id="obs-summary" class="stat-grid" style="margin-bottom:1rem"></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:.875rem 1.25rem .5rem;display:flex;align-items:center;justify-content:space-between">
+          <div class="card-title" style="margin:0">Registered groups</div>
+          <button class="btn btn-sm" onclick="exportObsCSV()">↓ CSV</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr>
+              <th>Group</th><th>CMG #</th><th>Ward</th><th>FI</th>
+              <th class="num">Meetings</th><th class="num">Quorum%</th>
+              <th class="num">Loan (TZS)</th><th class="num">Repaid</th><th class="num">Outstanding</th><th>Status</th>
+            </tr></thead>
+            <tbody id="obs-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="obs-detail-view" style="display:none">
+      <button class="back-btn" onclick="obsBack()">← Back to all groups</button>
+      <div id="obs-detail-content"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const MOCK_SEED = {"hierarchy": {"Arusha": {"Arusha District Council": {"Bangata": ["Midawe", "Sasi"], "Bwawani": [], "Ilboru": ["Oltulelei"], "Ilkiding'a": ["Ilkiding'A", "Ilkisongo", "Oloigeruno"], "Kimnyak": ["Kimnyaki", "Lekako", "Mitaroli", "Olevolos"], "Kiranyi": [], "Kisongo": ["Engorora", "Ilkerini", "Kisongo", "Lesiraa", "Loovilukuny"], "Kiutu": [], "Laroi": ["Enjoro", "Laroi"], "Lemanyata": [], "Lengijave": [], "Mateves": ["Lemgur", "Ngorbob"], "Mlangarini": [], "Moivo": ["Ilkilorit", "Moivo", "Oloresho", "Sama"], "Musa": [], "Mwandet": [], "Nduruma": [], "Oldonyosambu": ["Oldonyosambu"], "Oldonyowas": [], "Oljoro": [], "Olmotonyi": [], "Oloirien": ["Olorieni", "Olosiva"], "Olturoto": ["Osunyai"], "Olturumet": ["Ekenywa", "Ilkiushin", "Seuri"], "Sambasha": [], "Sokon II": ["Nambele", "Ngiresi", "Sokoni II"], "Tarakwa": []}}, "Singida": {"Singida District Council": {"Ikhanoda": [], "Ilongero": ["Ilongero", "Sekoutoure"], "Itaja": [], "Kijota": ["Ikiwu", "Mitonto", "Nduu"], "Kinyagigi": ["Kihunadi", "Kinyagigi", "Mitula"], "Kinyeto": ["Kinyeto", "Minyaa", "Mkimbii", "Ntunduu"], "Maghojoa": ["Ghata"], "Makuro": ["Matumbo", "Mikuyu", "Mpoku"], "Merya": [], "Mgori": [], "Mrama": ["Iddi Simba", "Itamka", "Makhandi", "Mrama"], "Msange": [], "Msisi": [], "Mtinko": ["Malolo", "Minyenye"], "Mudida": ["Kibaoni", "Mpipiti", "Mudida"], "Mughamo": ["Msikii"], "Mughunga": [], "Mwasauya": ["Mdilu", "Mwasauya", "Ngamu"], "Ngimu": [], "Ntonge": [], "Ughandi": ["Ughandi A"]}}}, "groups": [{"id": "C1001", "cmgNumber": "C1001", "name": "Uamsho Group", "chair": "Lambat Zakaria Luoga", "phone": "0754643521", "region": "Arusha", "district": "Arusha District Council", "ward": "Moivo", "village": "Ilkilorit", "members": 22, "quorum": 80, "freq": "Monthly", "fi": "CRDB Bank", "branch": "", "loan": 3500000, "loandate": "2025-01-10", "totaldue": 4130000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 15, "savings": 149525, "memrepay": 319385, "disbursed": 70501, "repaid": 0, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 19, "savings": 123739, "memrepay": 335958, "disbursed": 66246, "repaid": 344167, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 21, "savings": 59002, "memrepay": 360274, "disbursed": 257169, "repaid": 344167, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 19, "savings": 126833, "memrepay": 375494, "disbursed": 63734, "repaid": 344167, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 22, "savings": 130612, "memrepay": 293498, "disbursed": 108151, "repaid": 344167, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 17, "savings": 61625, "memrepay": 344729, "disbursed": 232934, "repaid": 344167, "notes": ""}, {"id": "m7", "date": "2025-07-14", "present": 14, "savings": 98412, "memrepay": 295745, "disbursed": 0, "repaid": 0, "notes": ""}, {"id": "m8", "date": "2025-08-13", "present": 22, "savings": 75485, "memrepay": 376165, "disbursed": 0, "repaid": 344167, "notes": ""}]}, {"id": "C1002", "cmgNumber": "C1002", "name": "Eimah Women Group", "chair": "Martha Nderekwa Nyali", "phone": "0768394012", "region": "Arusha", "district": "Arusha District Council", "ward": "Bangata", "village": "Midawe", "members": 18, "quorum": 80, "freq": "Monthly", "fi": "NMB Bank", "branch": "", "loan": 2000000, "loandate": "2025-01-10", "totaldue": 2360000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 12, "savings": 66948, "memrepay": 199080, "disbursed": 72968, "repaid": 0, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 17, "savings": 89120, "memrepay": 164740, "disbursed": 201698, "repaid": 196667, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 14, "savings": 71018, "memrepay": 157705, "disbursed": 185764, "repaid": 196667, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 17, "savings": 149327, "memrepay": 213012, "disbursed": 71134, "repaid": 196667, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 11, "savings": 62095, "memrepay": 162656, "disbursed": 209760, "repaid": 0, "notes": ""}]}, {"id": "C1003", "cmgNumber": "C1003", "name": "Nareto A Ilkisongo", "chair": "Naoli Paul Mitamei", "phone": "0765371920", "region": "Arusha", "district": "Arusha District Council", "ward": "Ilkiding'a", "village": "Ilkiding'A", "members": 25, "quorum": 80, "freq": "Monthly", "fi": "FINCA Tanzania", "branch": "", "loan": 4500000, "loandate": "2025-01-10", "totaldue": 5310000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 20, "savings": 145159, "memrepay": 422255, "disbursed": 69148, "repaid": 442500, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 18, "savings": 148978, "memrepay": 405966, "disbursed": 198847, "repaid": 0, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 21, "savings": 56026, "memrepay": 368115, "disbursed": 138893, "repaid": 442500, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 22, "savings": 75124, "memrepay": 449413, "disbursed": 188093, "repaid": 442500, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 20, "savings": 115734, "memrepay": 366127, "disbursed": 94408, "repaid": 442500, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 18, "savings": 85178, "memrepay": 447969, "disbursed": 263056, "repaid": 0, "notes": ""}, {"id": "m7", "date": "2025-07-14", "present": 17, "savings": 137315, "memrepay": 460838, "disbursed": 0, "repaid": 0, "notes": ""}, {"id": "m8", "date": "2025-08-13", "present": 23, "savings": 106379, "memrepay": 471711, "disbursed": 0, "repaid": 442500, "notes": ""}, {"id": "m9", "date": "2025-09-12", "present": 24, "savings": 63368, "memrepay": 485095, "disbursed": 0, "repaid": 442500, "notes": ""}]}, {"id": "C1004", "cmgNumber": "C1004", "name": "Riziki Centre", "chair": "Lightness Japheth Mollel", "phone": "0765602671", "region": "Arusha", "district": "Arusha District Council", "ward": "Kisongo", "village": "Engorora", "members": 20, "quorum": 80, "freq": "Monthly", "fi": "CRDB Bank", "branch": "", "loan": 2500000, "loandate": "2025-01-10", "totaldue": 2950000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 18, "savings": 74401, "memrepay": 214294, "disbursed": 252799, "repaid": 245833, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 17, "savings": 112942, "memrepay": 248954, "disbursed": 164734, "repaid": 245833, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 20, "savings": 116378, "memrepay": 197225, "disbursed": 184857, "repaid": 245833, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 15, "savings": 106108, "memrepay": 256433, "disbursed": 71514, "repaid": 0, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 14, "savings": 104614, "memrepay": 260583, "disbursed": 91691, "repaid": 0, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 19, "savings": 100359, "memrepay": 261649, "disbursed": 15253, "repaid": 245833, "notes": ""}]}, {"id": "C1005", "cmgNumber": "C1005", "name": "Malezi Kambo Kishore", "chair": "Jane Filemon Mchau", "phone": "0747328483", "region": "Arusha", "district": "Arusha District Council", "ward": "Olturumet", "village": "Seuri", "members": 30, "quorum": 80, "freq": "Monthly", "fi": "Letshego Tanzania", "branch": "", "loan": 5000000, "loandate": "2025-01-10", "totaldue": 5900000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 23, "savings": 95803, "memrepay": 525834, "disbursed": 166257, "repaid": 0, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 30, "savings": 88392, "memrepay": 453543, "disbursed": 241416, "repaid": 491667, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 21, "savings": 97771, "memrepay": 474161, "disbursed": 66767, "repaid": 0, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 19, "savings": 82039, "memrepay": 458509, "disbursed": 221896, "repaid": 0, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 26, "savings": 116195, "memrepay": 453231, "disbursed": 16779, "repaid": 491667, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 27, "savings": 92557, "memrepay": 437928, "disbursed": 284911, "repaid": 491667, "notes": ""}, {"id": "m7", "date": "2025-07-14", "present": 26, "savings": 138595, "memrepay": 462627, "disbursed": 0, "repaid": 491667, "notes": ""}]}, {"id": "C1006", "cmgNumber": "C1006", "name": "Kijota Yes", "chair": "Mariamu Selemani Senge", "phone": "0719954672", "region": "Singida", "district": "Singida District Council", "ward": "Kijota", "village": "Nduu", "members": 24, "quorum": 80, "freq": "Monthly", "fi": "NMB Bank", "branch": "", "loan": 3000000, "loandate": "2025-01-10", "totaldue": 3540000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 22, "savings": 124368, "memrepay": 280718, "disbursed": 171194, "repaid": 295000, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 16, "savings": 121923, "memrepay": 240714, "disbursed": 97385, "repaid": 0, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 24, "savings": 142487, "memrepay": 298350, "disbursed": 294825, "repaid": 295000, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 21, "savings": 54605, "memrepay": 253131, "disbursed": 91155, "repaid": 295000, "notes": ""}]}, {"id": "C1007", "cmgNumber": "C1007", "name": "Mkombozi", "chair": "Yohana Majengo Mungwe", "phone": "0743585171", "region": "Singida", "district": "Singida District Council", "ward": "Maghojoa", "village": "Ghata", "members": 19, "quorum": 80, "freq": "Monthly", "fi": "PASS Trust", "branch": "", "loan": 4000000, "loandate": "2025-01-10", "totaldue": 4720000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 16, "savings": 84048, "memrepay": 329958, "disbursed": 223047, "repaid": 393333, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 15, "savings": 67534, "memrepay": 336007, "disbursed": 97065, "repaid": 393333, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 19, "savings": 70048, "memrepay": 368428, "disbursed": 110184, "repaid": 393333, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 14, "savings": 120322, "memrepay": 404990, "disbursed": 188179, "repaid": 0, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 16, "savings": 112551, "memrepay": 389727, "disbursed": 222521, "repaid": 393333, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 16, "savings": 141431, "memrepay": 394151, "disbursed": 30093, "repaid": 393333, "notes": ""}, {"id": "m7", "date": "2025-07-14", "present": 17, "savings": 74528, "memrepay": 328011, "disbursed": 0, "repaid": 393333, "notes": ""}, {"id": "m8", "date": "2025-08-13", "present": 18, "savings": 125127, "memrepay": 324607, "disbursed": 0, "repaid": 393333, "notes": ""}, {"id": "m9", "date": "2025-09-12", "present": 15, "savings": 84523, "memrepay": 374414, "disbursed": 0, "repaid": 393333, "notes": ""}, {"id": "m10", "date": "2025-10-12", "present": 13, "savings": 145248, "memrepay": 320759, "disbursed": 0, "repaid": 0, "notes": ""}]}, {"id": "C1008", "cmgNumber": "C1008", "name": "Baraka", "chair": "Mwanaidi Shabani Kilongo", "phone": "0759344494", "region": "Singida", "district": "Singida District Council", "ward": "Ilongero", "village": "Ilongero", "members": 27, "quorum": 80, "freq": "Monthly", "fi": "FINCA Tanzania", "branch": "", "loan": 2000000, "loandate": "2025-01-10", "totaldue": 2360000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 25, "savings": 144120, "memrepay": 203722, "disbursed": 44206, "repaid": 196667, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 19, "savings": 133494, "memrepay": 166454, "disbursed": 223059, "repaid": 0, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 21, "savings": 64814, "memrepay": 209109, "disbursed": 201698, "repaid": 196667, "notes": ""}]}, {"id": "C1009", "cmgNumber": "C1009", "name": "Jipemoyo", "chair": "Fatuma Athumani Mwanja", "phone": "0687727780", "region": "Singida", "district": "Singida District Council", "ward": "Kinyagigi", "village": "Kihunadi", "members": 21, "quorum": 80, "freq": "Monthly", "fi": "Letshego Tanzania", "branch": "", "loan": 3500000, "loandate": "2025-01-10", "totaldue": 4130000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 14, "savings": 149525, "memrepay": 319385, "disbursed": 70501, "repaid": 0, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 18, "savings": 123739, "memrepay": 335958, "disbursed": 66246, "repaid": 344167, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 20, "savings": 59002, "memrepay": 360274, "disbursed": 257169, "repaid": 344167, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 18, "savings": 126833, "memrepay": 375494, "disbursed": 63734, "repaid": 344167, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 21, "savings": 130612, "memrepay": 293498, "disbursed": 108151, "repaid": 344167, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 16, "savings": 61625, "memrepay": 344729, "disbursed": 232934, "repaid": 344167, "notes": ""}]}, {"id": "C1010", "cmgNumber": "C1010", "name": "Mpakani _ Kibaoni", "chair": "Zaina Ramadhani Ngura", "phone": "0745459063", "region": "Singida", "district": "Singida District Council", "ward": "Mudida", "village": "Kibaoni", "members": 23, "quorum": 80, "freq": "Monthly", "fi": "CRDB Bank", "branch": "", "loan": 2800000, "loandate": "2025-01-10", "totaldue": 3304000, "deadline": "2026-01-10", "meetings": [{"id": "m1", "date": "2025-01-15", "present": 17, "savings": 66439, "memrepay": 245552, "disbursed": 96683, "repaid": 0, "notes": ""}, {"id": "m2", "date": "2025-02-14", "present": 17, "savings": 131596, "memrepay": 220357, "disbursed": 14861, "repaid": 0, "notes": ""}, {"id": "m3", "date": "2025-03-16", "present": 18, "savings": 90826, "memrepay": 243837, "disbursed": 288423, "repaid": 275333, "notes": ""}, {"id": "m4", "date": "2025-04-15", "present": 14, "savings": 122490, "memrepay": 293317, "disbursed": 225829, "repaid": 0, "notes": ""}, {"id": "m5", "date": "2025-05-15", "present": 15, "savings": 134996, "memrepay": 249838, "disbursed": 43173, "repaid": 0, "notes": ""}, {"id": "m6", "date": "2025-06-14", "present": 21, "savings": 67289, "memrepay": 228106, "disbursed": 252266, "repaid": 275333, "notes": ""}, {"id": "m7", "date": "2025-07-14", "present": 21, "savings": 148216, "memrepay": 238511, "disbursed": 0, "repaid": 275333, "notes": ""}, {"id": "m8", "date": "2025-08-13", "present": 15, "savings": 141866, "memrepay": 290440, "disbursed": 0, "repaid": 0, "notes": ""}]}]};
+const DB_KEY = 'pamoja_v5';
+let SESSION = null, selectedRole = null;
+
+// ── STORAGE ──
+function db(){ try{ return JSON.parse(localStorage.getItem(DB_KEY))||{groups:[]} }catch(e){ return {groups:[]} } }
+function dbSave(d){ localStorage.setItem(DB_KEY, JSON.stringify(d)) }
+
+function seedMock(){
+  const fresh = JSON.parse(JSON.stringify(MOCK_SEED));
+  dbSave(fresh);
+}
+function ensureSeeded(){
+  const d = db();
+  if(!d.groups || d.groups.length === 0) seedMock();
+}
+
+// ── RESET ──
+function confirmReset(){
+  document.getElementById('reset-confirm-box').style.display = 'block';
+}
+function cancelReset(){
+  document.getElementById('reset-confirm-box').style.display = 'none';
+}
+function doReset(){
+  seedMock();
+  document.getElementById('reset-confirm-box').style.display = 'none';
+  // Flash confirmation
+  const banner = document.querySelector('.demo-banner-text');
+  const orig = banner.innerHTML;
+  banner.innerHTML = '<strong style="color:#86efac">✓ Reset complete</strong> Mock data restored to defaults.';
+  setTimeout(()=>{ banner.innerHTML = orig; }, 2500);
+}
+
+// ── UTILS ──
+function fmt(n){ return 'TZS ' + Math.round(n||0).toLocaleString() }
+function fmtS(n){ const v=Math.round(n||0); return v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v.toString() }
+function pctOf(a,b){ return b>0?Math.min(100,Math.round(a/b*100)):0 }
+
+window.addEventListener('online',()=>document.querySelectorAll('.offline-banner').forEach(b=>b.style.display='none'));
+window.addEventListener('offline',()=>document.querySelectorAll('.offline-banner').forEach(b=>b.style.display='block'));
+if(!navigator.onLine) document.querySelectorAll('.offline-banner').forEach(b=>b.style.display='block');
+
+// ── HIERARCHY ──
+const H = MOCK_SEED.hierarchy;
+function populateRegion(selId){
+  const s=document.getElementById(selId);
+  Object.keys(H).forEach(r=>{ const o=document.createElement('option'); o.value=o.textContent=r; s.appendChild(o); });
+}
+function onRegion(){
+  const r=document.getElementById('sel-region').value;
+  ['sel-district','sel-ward','sel-village','sel-cmgnum'].forEach(id=>{ const s=document.getElementById(id); s.innerHTML='<option value="">— Select —</option>'; s.disabled=true; });
+  clearAutoFill();
+  if(!r) return;
+  const sd=document.getElementById('sel-district'); sd.disabled=false;
+  Object.keys(H[r]).forEach(d=>{ const o=document.createElement('option'); o.value=o.textContent=d; sd.appendChild(o); });
+}
+function onDistrict(){
+  const r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value;
+  ['sel-ward','sel-village','sel-cmgnum'].forEach(id=>{ const s=document.getElementById(id); s.innerHTML='<option value="">— Select —</option>'; s.disabled=true; });
+  clearAutoFill();
+  if(!d) return;
+  const sw=document.getElementById('sel-ward'); sw.disabled=false;
+  Object.keys(H[r][d]).sort().forEach(w=>{ const o=document.createElement('option'); o.value=o.textContent=w; sw.appendChild(o); });
+}
+function onWard(){
+  const r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value, w=document.getElementById('sel-ward').value;
+  ['sel-village','sel-cmgnum'].forEach(id=>{ const s=document.getElementById(id); s.innerHTML='<option value="">— Select —</option>'; s.disabled=true; });
+  clearAutoFill();
+  if(!w) return;
+  const sv=document.getElementById('sel-village'); sv.disabled=false;
+  const villages=H[r][d][w]||[];
+  if(!villages.length){ const o=document.createElement('option'); o.value='(ward level)'; o.textContent='(No separate village — ward level)'; sv.appendChild(o); }
+  else villages.forEach(v=>{ const o=document.createElement('option'); o.value=o.textContent=v; sv.appendChild(o); });
+}
+function onVillage(){
+  const r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value, w=document.getElementById('sel-ward').value, v=document.getElementById('sel-village').value;
+  const sc=document.getElementById('sel-cmgnum'); sc.innerHTML='<option value="">— Select —</option>'; sc.disabled=true; clearAutoFill();
+  if(!v) return;
+  const live = db().groups || [];
+  const matches = live.filter(g=> g.region===r && g.district===d && g.ward===w && (g.village===v || v==='(ward level)'));
+  if(!matches.length){ sc.innerHTML='<option value="">No CMGs registered here</option>'; return; }
+  matches.forEach(g=>{ const o=document.createElement('option'); o.value=g.cmgNumber||g.id; o.textContent=g.cmgNumber||g.id; sc.appendChild(o); });
+  sc.disabled=false;
+}
+function onCmgNum(){
+  const num=document.getElementById('sel-cmgnum').value;
+  const g=(db().groups||[]).find(x=>(x.cmgNumber||x.id)===num);
+  if(g){ document.getElementById('auto-name').value=g.name; document.getElementById('auto-chair').value=g.chair; }
+}
+function clearAutoFill(){ document.getElementById('auto-name').value=''; document.getElementById('auto-chair').value=''; }
+
+// ── LOGIN STEPS ──
+function setStep(n){
+  [1,2,3].forEach(i=>{ const el=document.getElementById('si-'+i); el.className='step'+(i<n?' done':i===n?' active':''); });
+  ['login-step1','login-step2','login-step3'].forEach((id,i)=>{ document.getElementById(id).style.display=i+1===n?'block':'none'; });
+}
+function selectRole(role,el){
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected'); selectedRole=role;
+}
+function goStep1(){ setStep(1); }
+function goStep2(){
+  const err=document.getElementById('s1-err');
+  if(!selectedRole){ err.textContent='Please select a role.'; err.style.display='block'; return; }
+  err.style.display='none';
+  ['chair-identity','lga-identity','fi-identity'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById(selectedRole+'-identity').style.display='block';
+  if(selectedRole==='chair'){
+    document.getElementById('sel-region').innerHTML='<option value="">— Select region —</option>';
+    populateRegion('sel-region');
+  }
+  if(selectedRole==='lga'){
+    const lr=document.getElementById('lga-region'); lr.innerHTML='<option value="">— Select —</option>';
+    Object.keys(H).forEach(r=>{ const o=document.createElement('option'); o.value=o.textContent=r; lr.appendChild(o); });
+    lr.onchange=function(){
+      const ld=document.getElementById('lga-district'); ld.innerHTML='<option value="">— Select —</option>';
+      if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(d=>{ const o=document.createElement('option'); o.value=o.textContent=d; ld.appendChild(o); });
+    };
+  }
+  setStep(2);
+}
+function goStep3(){
+  const err=document.getElementById('s2-err'); err.style.display='none';
+  let phone='';
+  if(selectedRole==='chair'){
+    if(!document.getElementById('sel-cmgnum').value){ err.textContent='Please select a CMG number.'; err.style.display='block'; return; }
+    phone=document.getElementById('chair-phone').value.trim();
+    if(!phone){ err.textContent='Please enter your registered phone number.'; err.style.display='block'; return; }
+  } else if(selectedRole==='lga'){
+    const w=document.getElementById('lga-ward').value.trim(), p=document.getElementById('lga-phone').value.trim();
+    if(!w||!p){ err.textContent='Please complete all fields.'; err.style.display='block'; return; }
+    phone=p;
+  } else {
+    const fi=document.getElementById('fi-institution').value, p=document.getElementById('fi-phone').value.trim();
+    if(!fi||!p){ err.textContent='Please complete all fields.'; err.style.display='block'; return; }
+    phone=p;
+  }
+  const masked=phone.length>6?phone.slice(0,4)+'****'+phone.slice(-3):phone;
+  document.getElementById('otp-msg').textContent='A one-time password has been sent to '+masked+'. Enter it below.';
+  [0,1,2,3].forEach(i=>document.getElementById('otp'+i).value='');
+  setStep(3);
+  setTimeout(()=>document.getElementById('otp0').focus(),100);
+}
+function otpMove(i){ if(document.getElementById('otp'+i).value&&i<3) document.getElementById('otp'+(i+1)).focus(); }
+function otpBack(i,e){ if(e.key==='Backspace'&&!document.getElementById('otp'+i).value&&i>0) document.getElementById('otp'+(i-1)).focus(); }
+function resendOtp(){ const el=document.getElementById('otp-msg'); const o=el.textContent; el.textContent='OTP resent (demo — any 4 digits).'; setTimeout(()=>el.textContent=o,2000); }
+function doVerify(){
+  const code=[0,1,2,3].map(i=>document.getElementById('otp'+i).value).join('');
+  const err=document.getElementById('s3-err');
+  if(!/^\d{4}$/.test(code)){ err.textContent='Please enter all 4 digits.'; err.style.display='block'; return; }
+  err.style.display='none';
+  if(selectedRole==='chair'){
+    const cmgNum=document.getElementById('sel-cmgnum').value;
+    SESSION={role:'chair',cmgNumber:cmgNum,region:document.getElementById('sel-region').value,district:document.getElementById('sel-district').value,ward:document.getElementById('sel-ward').value,village:document.getElementById('sel-village').value};
+  } else if(selectedRole==='lga'){
+    SESSION={role:'lga',region:document.getElementById('lga-region').value,district:document.getElementById('lga-district').value,ward:document.getElementById('lga-ward').value.trim(),name:document.getElementById('lga-name').value.trim()};
+  } else {
+    SESSION={role:'fi',fi:document.getElementById('fi-institution').value,name:document.getElementById('fi-name').value.trim()};
+  }
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-shell').style.display='block';
+  const lbl={chair:'Chairperson',lga:'LGA Officer',fi:'FI Lender'};
+  let sub=lbl[SESSION.role];
+  if(SESSION.role==='chair') sub+=' · '+SESSION.cmgNumber;
+  if(SESSION.role==='lga') sub+=' · '+SESSION.ward;
+  if(SESSION.role==='fi') sub+=' · '+SESSION.fi;
+  document.getElementById('topbar-label').textContent=sub;
+  if(SESSION.role==='chair') enterChair(); else enterObserver();
+}
+function doLogout(){
+  SESSION=null; selectedRole=null;
+  document.querySelectorAll('.role-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('app-shell').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  setStep(1);
+}
+
+// ── CHAIRPERSON ──
+function enterChair(){
+  const g=(db().groups||[]).find(x=>(x.cmgNumber||x.id)===SESSION.cmgNumber);
+  if(!g){ const mock=MOCK_SEED.groups.find(x=>x.cmgNumber===SESSION.cmgNumber); if(mock) prefillSetup(mock); showAppScreen('screen-setup'); }
+  else showChairMain(g);
+}
+function prefillSetup(g){
+  ['cmgnum','name','ward','village','chair','fi'].forEach(f=>{ const el=document.getElementById('su-'+f); if(el) el.value=g[f==='cmgnum'?'cmgNumber':f]||''; });
+  document.getElementById('su-members').value=g.members||'';
+  document.getElementById('su-quorum').value=g.quorum||80;
+  document.getElementById('su-loan').value=g.loan||'';
+  document.getElementById('su-totaldue').value=g.totaldue||'';
+  document.getElementById('su-loandate').value=g.loandate||'2025-01-10';
+  document.getElementById('su-deadline').value=g.deadline||'2026-01-10';
+}
+function goEditSetup(){ const g=getG(); if(g) prefillSetup(g); showAppScreen('screen-setup'); }
+function saveSetup(){
+  const members=parseInt(document.getElementById('su-members').value)||0;
+  const loan=parseFloat(document.getElementById('su-loan').value)||0;
+  const totaldue=parseFloat(document.getElementById('su-totaldue').value)||0;
+  const err=document.getElementById('su-err');
+  if(!members||!loan||!totaldue){ err.textContent='Please fill in members, loan amount and total repayment due.'; err.style.display='block'; return; }
+  err.style.display='none';
+  const d=db(); let g=d.groups.find(x=>(x.cmgNumber||x.id)===SESSION.cmgNumber);
+  if(!g){ const mock=MOCK_SEED.groups.find(x=>x.cmgNumber===SESSION.cmgNumber)||{}; g={...mock,meetings:[]}; d.groups.push(g); }
+  g.members=members; g.quorum=parseInt(document.getElementById('su-quorum').value)||80;
+  g.loan=loan; g.totaldue=totaldue;
+  g.loandate=document.getElementById('su-loandate').value;
+  g.deadline=document.getElementById('su-deadline').value;
+  dbSave(d); showChairMain(g);
+}
+function showChairMain(g){
+  document.getElementById('c-title').textContent=g.name;
+  document.getElementById('c-sub').textContent=(g.cmgNumber||g.id)+' · '+g.ward+(g.village?' / '+g.village:'')+' · '+g.fi;
+  showAppScreen('screen-chair');
+  chairTab('dash',document.querySelector('#screen-chair .tab'));
+}
+function chairTab(tab,btn){
+  ['dash','log','hist'].forEach(t=>document.getElementById('ct-'+t).style.display=t===tab?'block':'none');
+  document.querySelectorAll('#screen-chair .tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if(tab==='dash') renderChairDash();
+  if(tab==='hist') renderChairHist();
+  if(tab==='log') document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+}
+function getG(){ return (db().groups||[]).find(x=>(x.cmgNumber||x.id)===SESSION.cmgNumber); }
+function gStats(g){
+  const ms=g.meetings||[];
+  const totRep=ms.reduce((s,m)=>s+(m.repaid||0),0), totSav=ms.reduce((s,m)=>s+(m.savings||0),0);
+  const totMem=ms.reduce((s,m)=>s+(m.memrepay||0),0), totDis=ms.reduce((s,m)=>s+(m.disbursed||0),0);
+  const out=(g.totaldue||0)-totRep, pct=pctOf(totRep,g.totaldue);
+  const thresh=Math.ceil((g.members||0)*(g.quorum||80)/100);
+  const qOk=ms.filter(m=>m.present>=thresh).length;
+  const qPct=ms.length>0?Math.round(qOk/ms.length*100):null;
+  return{totRep,totSav,totMem,totDis,out,pct,thresh,qOk,qPct,count:ms.length};
+}
+function renderChairDash(){
+  const g=getG(); if(!g) return;
+  const st=gStats(g); const pct=st.pct;
+  const progCls=pct>=75?'':pct>=40?' warn':' bad';
+  let alertHtml='';
+  if(g.deadline&&st.out>0){ const dl=Math.round((new Date(g.deadline)-new Date())/86400000); if(dl<90) alertHtml=`<div class="alert alert-warn">⚠ <strong>${dl} days</strong> to repayment deadline. ${fmt(st.out)} still outstanding.</div>`; }
+  document.getElementById('c-dash-content').innerHTML=`${alertHtml}
+    <div class="card"><div class="card-title">External loan — <span style="color:var(--green-dark)">${g.fi}</span></div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Loan amount</div><div class="stat-val">${fmt(g.loan)}</div></div>
+        <div class="stat"><div class="stat-label">Total due</div><div class="stat-val">${fmt(g.totaldue)}</div></div>
+        <div class="stat"><div class="stat-label">Repaid to lender</div><div class="stat-val good">${fmt(st.totRep)}</div></div>
+        <div class="stat"><div class="stat-label">Outstanding</div><div class="stat-val ${st.out<=0?'good':st.out>g.totaldue*0.5?'bad':'warn'}">${fmt(st.out)}</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill${progCls}" style="width:${pct}%"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${pct}% repaid to lender · Deadline: ${g.deadline||'—'}</div>
+    </div>
+    <div class="card"><div class="card-title">Member collections (all meetings)</div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Savings collected</div><div class="stat-val">${fmt(st.totSav)}</div></div>
+        <div class="stat"><div class="stat-label">Member repayments</div><div class="stat-val">${fmt(st.totMem)}</div></div>
+        <div class="stat"><div class="stat-label">Disbursed to members</div><div class="stat-val">${fmt(st.totDis)}</div></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">Meeting compliance</div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Meetings held</div><div class="stat-val">${st.count}</div></div>
+        <div class="stat"><div class="stat-label">Quorum met</div><div class="stat-val good">${st.qOk}</div></div>
+        <div class="stat"><div class="stat-label">Below quorum</div><div class="stat-val warn">${st.count-st.qOk}</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted)">Quorum: ${g.quorum||80}% of ${g.members} members = ${st.thresh} present</div>
+    </div>`;
+}
+function qHint(){
+  const g=getG(); if(!g) return;
+  const thresh=Math.ceil((g.members||0)*(g.quorum||80)/100);
+  const present=parseInt(document.getElementById('l-present').value)||0;
+  const el=document.getElementById('l-qhint');
+  if(!present){el.textContent='';el.className='';return;}
+  el.className='q-hint '+(present>=thresh?'ok':'fail');
+  el.textContent=present>=thresh?'✓ Quorum met ('+present+' present, threshold '+thresh+')':'✗ Below quorum ('+present+' present, need '+thresh+')';
+}
+function logMeeting(){
+  const date=document.getElementById('l-date').value, present=parseInt(document.getElementById('l-present').value)||0;
+  const err=document.getElementById('l-err'), ok=document.getElementById('l-ok');
+  if(!date||!present){err.textContent='Please enter date and members present.';err.style.display='block';ok.style.display='none';return;}
+  err.style.display='none';
+  const d=db(); const g=getG();
+  if(!g.meetings) g.meetings=[];
+  g.meetings.push({id:'m'+Date.now(),date,present,
+    savings:parseFloat(document.getElementById('l-savings').value)||0,
+    memrepay:parseFloat(document.getElementById('l-memrepay').value)||0,
+    disbursed:parseFloat(document.getElementById('l-disbursed').value)||0,
+    repaid:parseFloat(document.getElementById('l-repaid').value)||0,
+    notes:document.getElementById('l-notes').value.trim()});
+  g.meetings.sort((a,b)=>b.date.localeCompare(a.date));
+  dbSave(d);
+  ['l-present','l-savings','l-memrepay','l-disbursed','l-repaid','l-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('l-qhint').textContent='';
+  ok.textContent='Meeting saved.'; ok.style.display='block';
+  setTimeout(()=>ok.style.display='none',2500);
+}
+function renderChairHist(){
+  const g=getG(); const ms=(g?g.meetings||[]),[]; const thresh=g?Math.ceil((g.members||0)*(g.quorum||80)/100):0;
+  const el=document.getElementById('c-hist-content');
+  if(!ms||!ms.length){el.innerHTML='<div class="empty-state">No meetings logged yet.</div>';return;}
+  el.innerHTML=ms.map(m=>{
+    const hasQ=m.present>=thresh;
+    const dStr=new Date(m.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="mtg-card">
+      <div class="mtg-header"><div style="font-weight:700">${dStr}</div>
+        <div style="display:flex;gap:6px;align-items:center"><span class="badge ${hasQ?'badge-ok':'badge-fail'}">${hasQ?'Quorum met':'Below quorum'}</span>
+        <button class="btn btn-sm btn-danger" onclick="delMtg('${m.id}')">✕</button></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">${m.present} of ${g.members} present</div>
+      <div class="mtg-grid">
+        <div class="mtg-item"><span>Savings collected</span><strong>${fmt(m.savings)}</strong></div>
+        <div class="mtg-item"><span>Member repayments</span><strong>${fmt(m.memrepay)}</strong></div>
+        <div class="mtg-item"><span>Disbursed to members</span><strong>${fmt(m.disbursed)}</strong></div>
+        <div class="mtg-item"><span>Remitted to lender</span><strong>${fmt(m.repaid)}</strong></div>
+      </div>${m.notes?`<div style="margin-top:.75rem;font-size:13px;color:var(--muted);border-top:1px solid var(--border);padding-top:.75rem">${m.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function delMtg(id){
+  if(!confirm('Delete this meeting record?')) return;
+  const d=db(); const g=getG(); g.meetings=g.meetings.filter(m=>m.id!==id); dbSave(d); renderChairHist(); renderChairDash();
+}
+
+// ── OBSERVER ──
+function enterObserver(){
+  const d=db(); let groups=d.groups||[];
+  if(SESSION.role==='lga'){
+    const w=SESSION.ward.toLowerCase();
+    groups=groups.filter(g=>(g.ward&&g.ward.toLowerCase().includes(w))||(g.district&&g.district.toLowerCase().includes(w)));
+    document.getElementById('obs-title').textContent='LGA Officer · '+SESSION.ward;
+    document.getElementById('obs-sub').textContent=(SESSION.district||'')+' · '+(SESSION.name||'')+' · '+groups.length+' group'+(groups.length!==1?'s':'');
+  } else {
+    groups=groups.filter(g=>g.fi===SESSION.fi);
+    document.getElementById('obs-title').textContent='FI Lender · '+SESSION.fi;
+    document.getElementById('obs-sub').textContent=(SESSION.name||'')+' · '+groups.length+' group'+(groups.length!==1?'s':'')+' with active loans';
+  }
+  SESSION._groups=groups;
+  renderObsList(groups);
+  showAppScreen('screen-observer');
+}
+function renderObsList(groups){
+  document.getElementById('obs-list-view').style.display='block';
+  document.getElementById('obs-detail-view').style.display='none';
+  if(groups.length){
+    const tL=groups.reduce((s,g)=>s+(g.loan||0),0), tR=groups.reduce((s,g)=>s+gStats(g).totRep,0);
+    const tO=groups.reduce((s,g)=>s+gStats(g).out,0), tM=groups.reduce((s,g)=>s+gStats(g).count,0);
+    document.getElementById('obs-summary').innerHTML=`
+      <div class="stat"><div class="stat-label">Groups</div><div class="stat-val">${groups.length}</div></div>
+      <div class="stat"><div class="stat-label">Total loans</div><div class="stat-val">${fmtS(tL)}</div></div>
+      <div class="stat"><div class="stat-label">Repaid</div><div class="stat-val good">${fmtS(tR)}</div></div>
+      <div class="stat"><div class="stat-label">Outstanding</div><div class="stat-val warn">${fmtS(tO)}</div></div>
+      <div class="stat"><div class="stat-label">Meetings logged</div><div class="stat-val">${tM}</div></div>`;
+  }
+  const tbody=document.getElementById('obs-tbody');
+  if(!groups.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted)">No groups found.</td></tr>`;return;}
+  tbody.innerHTML=groups.map(g=>{
+    const st=gStats(g);
+    const repB=st.pct>=100?'<span class="badge badge-ok">Fully repaid</span>':st.pct>=50?`<span class="badge badge-warn">${st.pct}%</span>`:`<span class="badge badge-fail">${st.pct}%</span>`;
+    const qB=st.count===0?'<span class="badge badge-gray">—</span>':st.qPct>=80?`<span class="badge badge-ok">${st.qPct}%</span>`:`<span class="badge badge-warn">${st.qPct}%</span>`;
+    return `<tr class="clickable" onclick="obsDetail('${g.id||g.cmgNumber}')">
+      <td><strong>${g.name}</strong></td><td><span class="fi-pill">${g.cmgNumber||g.id}</span></td>
+      <td>${g.ward||'—'}</td><td>${g.fi}</td>
+      <td class="num">${st.count}</td><td class="num">${qB}</td>
+      <td class="num">${fmt(g.loan)}</td><td class="num">${fmt(st.totRep)}</td><td class="num">${fmt(st.out)}</td><td>${repB}</td>
+    </tr>`;
+  }).join('');
+}
+function obsDetail(gid){
+  const g=(db().groups||[]).find(x=>(x.id||x.cmgNumber)===gid); if(!g) return;
+  document.getElementById('obs-list-view').style.display='none';
+  document.getElementById('obs-detail-view').style.display='block';
+  const st=gStats(g); const ms=g.meetings||[]; const pct=st.pct;
+  const progCls=pct>=75?'':pct>=40?' warn':' bad';
+  const mHtml=ms.length?ms.map(m=>{
+    const hasQ=m.present>=st.thresh;
+    const dStr=new Date(m.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    return `<div class="mtg-card">
+      <div class="mtg-header"><div style="font-weight:700">${dStr}</div><span class="badge ${hasQ?'badge-ok':'badge-fail'}">${hasQ?'Quorum met':'Below quorum'}</span></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">${m.present} of ${g.members} present</div>
+      <div class="mtg-grid">
+        <div class="mtg-item"><span>Savings collected</span><strong>${fmt(m.savings)}</strong></div>
+        <div class="mtg-item"><span>Member repayments</span><strong>${fmt(m.memrepay)}</strong></div>
+        <div class="mtg-item"><span>Disbursed to members</span><strong>${fmt(m.disbursed)}</strong></div>
+        <div class="mtg-item"><span>Remitted to lender</span><strong>${fmt(m.repaid)}</strong></div>
+      </div>${m.notes?`<div style="margin-top:.75rem;font-size:13px;color:var(--muted);border-top:1px solid var(--border);padding-top:.75rem">${m.notes}</div>`:''}
+    </div>`;
+  }).join(''):'<div class="empty-state">No meetings logged yet.</div>';
+  document.getElementById('obs-detail-content').innerHTML=`
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:1rem">
+        <div><div style="font-size:17px;font-weight:700;color:var(--green-dark)">${g.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">${g.cmgNumber||g.id} · ${g.ward}${g.village?' / '+g.village:''}</div>
+          <div style="margin-top:6px"><span class="fi-pill">${g.fi}</span></div></div>
+        <div style="text-align:right;font-size:12px;color:var(--muted)">${g.members} members · ${g.freq||'Monthly'}<br>Quorum: ${g.quorum||80}% (${st.thresh})<br>Chair: ${g.chair}</div>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Loan amount</div><div class="stat-val">${fmt(g.loan)}</div></div>
+        <div class="stat"><div class="stat-label">Total due</div><div class="stat-val">${fmt(g.totaldue)}</div></div>
+        <div class="stat"><div class="stat-label">Repaid</div><div class="stat-val good">${fmt(st.totRep)}</div></div>
+        <div class="stat"><div class="stat-label">Outstanding</div><div class="stat-val ${st.out<=0?'good':st.out>g.totaldue*0.5?'bad':'warn'}">${fmt(st.out)}</div></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill${progCls}" style="width:${pct}%"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${pct}% repaid · Deadline: ${g.deadline||'—'}</div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Savings collected</div><div class="stat-val">${fmt(st.totSav)}</div></div>
+        <div class="stat"><div class="stat-label">Member repayments</div><div class="stat-val">${fmt(st.totMem)}</div></div>
+        <div class="stat"><div class="stat-label">Disbursed to members</div><div class="stat-val">${fmt(st.totDis)}</div></div>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-label">Meetings held</div><div class="stat-val">${st.count}</div></div>
+        <div class="stat"><div class="stat-label">Quorum met</div><div class="stat-val good">${st.qOk}</div></div>
+        <div class="stat"><div class="stat-label">Below quorum</div><div class="stat-val warn">${st.count-st.qOk}</div></div>
+      </div>
+    </div>
+    <div style="font-weight:700;font-size:14px;color:var(--green-dark);margin-bottom:.75rem">Meeting records</div>${mHtml}`;
+}
+function obsBack(){
+  document.getElementById('obs-list-view').style.display='block';
+  document.getElementById('obs-detail-view').style.display='none';
+}
+
+// ── CSV ──
+function exportCSV(){
+  const g=getG(); if(!g){alert('No group data.');return;}
+  const ms=g.meetings||[], thresh=Math.ceil((g.members||0)*(g.quorum||80)/100);
+  const rows=[['PAMOJA CMG External Loan Tracker'],['CMG Number',g.cmgNumber||g.id],['Group name',g.name],['Ward',g.ward],['Village',g.village||''],['FI',g.fi],['Members',g.members],['Quorum %',g.quorum||80],['Loan (TZS)',g.loan],['Total due (TZS)',g.totaldue],['Deadline',g.deadline||''],['Chairperson',g.chair],[],
+    ['Date','Present','Threshold','Quorum','Savings (TZS)','Member repayments (TZS)','Disbursed (TZS)','Remitted to lender (TZS)','Notes']];
+  ms.forEach(m=>rows.push([m.date,m.present,thresh,m.present>=thresh?'Y':'N',m.savings||0,m.memrepay||0,m.disbursed||0,m.repaid||0,m.notes||'']));
+  if(ms.length){ rows.push([]); rows.push(['TOTALS','','','',ms.reduce((s,m)=>s+(m.savings||0),0),ms.reduce((s,m)=>s+(m.memrepay||0),0),ms.reduce((s,m)=>s+(m.disbursed||0),0),ms.reduce((s,m)=>s+(m.repaid||0),0),'']); }
+  dlCSV(rows,(g.name||'cmg').replace(/[^a-z0-9]/gi,'_')+'_meetings_'+new Date().toISOString().slice(0,10)+'.csv');
+}
+function exportObsCSV(){
+  const groups=SESSION._groups||[];
+  const rows=[['PAMOJA Observer Export'],[SESSION.role==='lga'?'Ward':'FI',SESSION.role==='lga'?SESSION.ward:SESSION.fi],['Date',new Date().toLocaleDateString('en-GB')],[],
+    ['CMG #','Group','Ward','Village','FI','Members','Loan (TZS)','Due (TZS)','Repaid (TZS)','Outstanding (TZS)','Repaid %','Meetings','Quorum-OK','Quorum %']];
+  groups.forEach(g=>{const st=gStats(g); rows.push([g.cmgNumber||g.id,g.name,g.ward,g.village||'',g.fi,g.members,g.loan||0,g.totaldue||0,st.totRep,st.out,st.pct+'%',st.count,st.qOk,st.qPct!==null?st.qPct+'%':'—']);});
+  dlCSV(rows,'pamoja_observer_'+new Date().toISOString().slice(0,10)+'.csv');
+}
+function dlCSV(rows,fn){
+  const csv=rows.map(r=>r.map(v=>{const s=String(v);return s.includes(',')||s.includes('"')?'"'+s.replace(/"/g,'""')+'"':s;}).join(',')).join('\r\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=fn;
+  document.body.appendChild(a); a.click(); setTimeout(()=>document.body.removeChild(a),100);
+}
+
+// ── UTIL ──
+function showAppScreen(id){
+  document.querySelectorAll('#app-shell .screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  ensureSeeded();
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app-shell').style.display='none';
+  setStep(1);
+});
+</script>
+</body>
+</html>
