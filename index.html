@@ -303,78 +303,106 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
     <div id="ct-dash"><div id="c-dash-content"></div></div>
     <div id="ct-log" style="display:none">
 
-      <!-- Step progress bar -->
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:1.25rem" id="log-steps">
-        <div class="lstep active" id="ls1"><div class="lstep-dot">1</div><span>Meeting details</span></div>
-        <div class="lstep-line"></div>
-        <div class="lstep" id="ls2"><div class="lstep-dot">2</div><span>Collections</span></div>
-        <div class="lstep-line"></div>
-        <div class="lstep" id="ls3"><div class="lstep-dot">3</div><span>Remittance</span></div>
-      </div>
-
-      <!-- STEP 1: Meeting details -->
-      <div id="log-step1">
-        <div class="card">
-          <div class="card-title">Step 1 of 3 &mdash; Meeting details</div>
-          <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
-          <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0"></div>
-          <div id="l-qhint"></div>
-          <div class="field"><label>Notes (optional)</label><input type="text" id="l-notes" placeholder="Any remarks about this meeting"></div>
+      <!-- ── REVIEW SCREEN ── -->
+      <div id="log-review" style="display:none">
+        <div id="review-card"></div>
+        <div style="margin-top:1rem;display:flex;flex-direction:column;gap:8px">
+          <button class="btn btn-full" id="amend-btn" style="border-color:var(--amber);color:var(--amber)">&#9998; Amend this record</button>
+          <button class="btn btn-full" id="log-new-btn">+ Log another meeting</button>
         </div>
-        <p id="l-err1" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
-        <button class="btn btn-primary btn-full" id="log-next1">Next &rarr;</button>
-      </div>
-
-      <!-- STEP 2: Collections -->
-      <div id="log-step2" style="display:none">
-        <div class="card">
-          <div class="card-title">Step 2 of 3 &mdash; Transactions this meeting (TZS)</div>
-          <div class="alert alert-info" style="margin-bottom:.875rem">Enter 0 if nothing was collected for a particular item.</div>
-          <div class="field"><label>Total savings *</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
-          <div class="field"><label>Total repayments collected from members *</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
-          <div class="field"><label>Total loans disbursed to members *</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
-        </div>
-        <p id="l-err2" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
-        <div style="display:flex;gap:8px">
-          <button class="btn" id="log-back2">&larr; Back</button>
-          <button class="btn btn-primary btn-full" id="log-next2">Next &rarr;</button>
-        </div>
-      </div>
-
-      <!-- STEP 3: Remittance -->
-      <div id="log-step3" style="display:none">
-        <div class="card">
-          <div class="card-title">Step 3 of 3 &mdash; Remittance to lender</div>
-
-          <div class="field">
-            <label>Did the group remit any amount to the lender at this meeting? *</label>
-            <div style="display:flex;gap:10px;margin-top:6px">
-              <button class="tog-btn" id="tog-yes" data-val="yes">Yes</button>
-              <button class="tog-btn" id="tog-no" data-val="no">No</button>
+        <!-- Amend auth panel -->
+        <div id="amend-auth" style="display:none;margin-top:1rem">
+          <div class="card" style="border:2px solid var(--amber)">
+            <div class="card-title" style="color:var(--amber)">Authorisation required</div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Amendments are logged with a timestamp and cannot be undone. Confirm you are authorised before proceeding.</p>
+            <label style="display:flex;align-items:flex-start;gap:10px;font-size:14px;cursor:pointer">
+              <input type="checkbox" id="amend-chk" style="width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--green)">
+              <span>I confirm I am authorised to amend this meeting record on behalf of <strong id="amend-chair-name"></strong>.</span>
+            </label>
+            <p id="amend-err" style="color:var(--red);font-size:13px;margin-top:.75rem;display:none"></p>
+            <div style="display:flex;gap:8px;margin-top:1rem">
+              <button class="btn" id="amend-cancel">Cancel</button>
+              <button class="btn btn-primary btn-full" id="amend-confirm">Proceed to amend</button>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div id="remit-detail" style="display:none">
-            <div class="field" style="margin-top:.5rem">
-              <label>Full amount or partial? *</label>
+      <!-- ── WIZARD (new or amend) ── -->
+      <div id="log-wizard" style="display:none">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:1.25rem">
+          <div class="lstep active" id="ls1"><div class="lstep-dot">1</div><span>Meeting details</span></div>
+          <div class="lstep-line"></div>
+          <div class="lstep" id="ls2"><div class="lstep-dot">2</div><span>Transactions</span></div>
+          <div class="lstep-line"></div>
+          <div class="lstep" id="ls3"><div class="lstep-dot">3</div><span>Remittance</span></div>
+        </div>
+        <div id="amend-banner" style="display:none" class="alert alert-warn">&#9998; Amend mode &mdash; editing a saved record. All changes will be logged with a timestamp.</div>
+
+        <!-- STEP 1 -->
+        <div id="log-step1">
+          <div class="card">
+            <div class="card-title">Step 1 of 3 &mdash; Meeting details</div>
+            <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
+            <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0"></div>
+            <div id="l-qhint"></div>
+            <div class="field"><label>Notes (optional)</label><input type="text" id="l-notes" placeholder="Any remarks about this meeting"></div>
+          </div>
+          <p id="l-err1" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="log-cancel-wizard">Cancel</button>
+            <button class="btn btn-primary btn-full" id="log-next1">Next &rarr;</button>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div id="log-step2" style="display:none">
+          <div class="card">
+            <div class="card-title">Step 2 of 3 &mdash; Transactions this meeting (TZS)</div>
+            <div class="alert alert-info" style="margin-bottom:.875rem">Enter 0 if nothing was collected for a particular item.</div>
+            <div class="field"><label>Total savings *</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
+            <div class="field"><label>Total repayments collected from members *</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
+            <div class="field"><label>Total loans disbursed to members *</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
+          </div>
+          <p id="l-err2" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="log-back2">&larr; Back</button>
+            <button class="btn btn-primary btn-full" id="log-next2">Next &rarr;</button>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div id="log-step3" style="display:none">
+          <div class="card">
+            <div class="card-title">Step 3 of 3 &mdash; Remittance to lender</div>
+            <div class="field">
+              <label>Did the group remit any amount to the lender at this meeting? *</label>
               <div style="display:flex;gap:10px;margin-top:6px">
-                <button class="tog-btn" id="tog-full" data-val="full">Full amount</button>
-                <button class="tog-btn" id="tog-partial" data-val="partial">Partial amount</button>
+                <button class="tog-btn" id="tog-yes">Yes</button>
+                <button class="tog-btn" id="tog-no">No</button>
               </div>
             </div>
-            <div class="field" id="remit-amount-field" style="display:none">
-              <label>Amount remitted (TZS) *</label>
-              <input type="number" id="l-repaid" min="0" placeholder="0">
+            <div id="remit-detail" style="display:none">
+              <div class="field" style="margin-top:.5rem">
+                <label>Full amount or partial? *</label>
+                <div style="display:flex;gap:10px;margin-top:6px">
+                  <button class="tog-btn" id="tog-full">Full amount</button>
+                  <button class="tog-btn" id="tog-partial">Partial amount</button>
+                </div>
+              </div>
+              <div class="field" id="remit-amount-field" style="display:none">
+                <label>Amount remitted (TZS) *</label>
+                <input type="number" id="l-repaid" min="0" placeholder="0">
+              </div>
+              <div id="remit-full-info" style="display:none" class="alert alert-ok"></div>
             </div>
-            <div id="remit-full-info" style="display:none" class="alert alert-ok" style="margin-top:.5rem"></div>
+          </div>
+          <p id="l-err3" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="log-back3">&larr; Back</button>
+            <button class="btn btn-primary btn-full" id="log-save-btn" disabled style="opacity:.5;cursor:not-allowed">Save meeting record</button>
           </div>
         </div>
-        <p id="l-err3" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
-        <div style="display:flex;gap:8px">
-          <button class="btn" id="log-back3">&larr; Back</button>
-          <button class="btn btn-primary btn-full" id="log-save-btn" disabled style="opacity:.5;cursor:not-allowed">Save meeting record</button>
-        </div>
-        <p id="l-ok" style="color:#15803d;font-size:13px;margin-top:.5rem;display:none"></p>
       </div>
 
     </div>
@@ -420,8 +448,40 @@ let SESSION = null, selectedRole = null;
 
 function db(){ try{ return JSON.parse(localStorage.getItem(DB_KEY))||{groups:[]} }catch(e){ return {groups:[]} } }
 function dbSave(d){ localStorage.setItem(DB_KEY, JSON.stringify(d)) }
-function seedMock(){ dbSave(JSON.parse(JSON.stringify(MOCK_SEED))); }
-function ensureSeeded(){ const d=db(); if(!d.groups||!d.groups.length) seedMock(); }
+function seedMock(){
+  var fresh=JSON.parse(JSON.stringify(MOCK_SEED));
+  // Backfill remitChoice / remitType on pre-loaded mock meetings
+  fresh.groups.forEach(function(g){
+    (g.meetings||[]).forEach(function(m){
+      if(!m.remitChoice){
+        if(m.repaid>0){ m.remitChoice='yes'; m.remitType='partial'; }
+        else { m.remitChoice='no'; m.remitType=null; }
+      }
+      if(!m.amendments) m.amendments=[];
+    });
+  });
+  dbSave(fresh);
+}
+function ensureSeeded(){
+  var d=db();
+  // Also backfill any existing data that predates the remitChoice field
+  if(d.groups&&d.groups.length){
+    var changed=false;
+    d.groups.forEach(function(g){
+      (g.meetings||[]).forEach(function(m){
+        if(!m.remitChoice){
+          m.remitChoice=m.repaid>0?'yes':'no';
+          m.remitType=m.repaid>0?'partial':null;
+          changed=true;
+        }
+        if(!m.amendments){ m.amendments=[]; changed=true; }
+      });
+    });
+    if(changed) dbSave(d);
+  } else {
+    seedMock();
+  }
+}
 
 function fmt(n){ return 'TZS '+Math.round(n||0).toLocaleString() }
 function fmtS(n){ const v=Math.round(n||0); return v>=1e6?(v/1e6).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'K':v.toString() }
@@ -667,10 +727,7 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='dash') renderChairDash();
   if(tab==='hist') renderChairHist();
-  if(tab==='log'){
-    document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
-    logStepShow(1);
-  }
+  if(tab==='log') enterLogTab();
 }
 document.getElementById('tab-dash').addEventListener('click', function(){ switchTab('dash'); });
 document.getElementById('tab-log').addEventListener('click', function(){ switchTab('log'); });
@@ -704,10 +761,10 @@ function renderChairDash(){
     '<div class="stat"><div class="stat-label">Outstanding</div><div class="stat-val '+(st.out<=0?'good':st.out>g.totaldue*0.5?'bad':'warn')+'">'+fmt(st.out)+'</div></div>'+
     '</div><div class="progress-bar"><div class="progress-fill'+progCls+'" style="width:'+pct+'%"></div></div>'+
     '<div style="font-size:12px;color:var(--muted);margin-top:4px">'+pct+'% repaid &middot; Deadline: '+(g.deadline||'&mdash;')+'</div></div>'+
-    '<div class="card"><div class="card-title">Member collections (all meetings)</div><div class="stat-grid">'+
-    '<div class="stat"><div class="stat-label">Savings collected</div><div class="stat-val">'+fmt(st.totSav)+'</div></div>'+
-    '<div class="stat"><div class="stat-label">Member repayments</div><div class="stat-val">'+fmt(st.totMem)+'</div></div>'+
-    '<div class="stat"><div class="stat-label">Disbursed to members</div><div class="stat-val">'+fmt(st.totDis)+'</div></div>'+
+    '<div class="card"><div class="card-title">Transactions (all meetings)</div><div class="stat-grid">'+
+    '<div class="stat"><div class="stat-label">Total savings collected</div><div class="stat-val">'+fmt(st.totSav)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Member repayments collected</div><div class="stat-val">'+fmt(st.totMem)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Loans disbursed to members</div><div class="stat-val">'+fmt(st.totDis)+'</div></div>'+
     '</div></div>'+
     '<div class="card"><div class="card-title">Meeting compliance</div><div class="stat-grid">'+
     '<div class="stat"><div class="stat-label">Meetings held</div><div class="stat-val">'+st.count+'</div></div>'+
@@ -726,56 +783,207 @@ document.getElementById('l-present').addEventListener('input', function(){
   el.innerHTML=present>=thresh?'&#10003; Quorum met ('+present+' present, threshold '+thresh+')':'&#10007; Below quorum ('+present+' present, need '+thresh+')';
 });
 
-// ── LOG MEETING WIZARD ──
-var logRemitChoice=null, logFullPartial=null;
+// ── LOG MEETING: state ──
+var logRemitChoice=null, logFullPartial=null, logAmendId=null;
 
+// ── enterLogTab: decide whether to show review or fresh wizard ──
+function enterLogTab(){
+  var g=getG();
+  var ms=g?g.meetings||[]:[];
+  // If there is at least one meeting, default to showing the most recent in review
+  if(ms.length>0){
+    showReview(ms[0]); // ms is sorted newest first
+  } else {
+    showWizardFresh();
+  }
+}
+
+// ── REVIEW SCREEN ──
+function showReview(m){
+  var g=getG();
+  var thresh=Math.ceil((g.members||0)*(g.quorum||80)/100);
+  var hasQ=m.present>=thresh;
+  var dStr=new Date(m.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  var remitLabel=m.remitChoice==='no'?'No remittance made':
+    m.remitType==='full'?'Full monthly instalment':
+    m.remitType==='partial'?'Partial payment':fmt(m.repaid);
+
+  var amendHtml='';
+  if(m.amendments&&m.amendments.length){
+    amendHtml='<div style="margin-top:.75rem;border-top:1px solid var(--border);padding-top:.75rem">'+
+      '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">Amendment log</div>'+
+      m.amendments.map(function(a){
+        return '<div style="font-size:12px;color:var(--muted);margin-bottom:4px">'+
+          '<span style="color:var(--amber)">&#9998;</span> '+a.ts+' &mdash; '+a.summary+'</div>';
+      }).join('')+'</div>';
+  }
+
+  document.getElementById('review-card').innerHTML=
+    '<div class="alert alert-ok" style="margin-bottom:1rem">&#10003; Meeting record &mdash; '+dStr+'</div>'+
+    '<div class="card">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">'+
+    '<div style="font-weight:700;font-size:15px">'+dStr+'</div>'+
+    '<span class="badge '+(hasQ?'badge-ok':'badge-fail')+'">'+(hasQ?'Quorum met':'Below quorum')+'</span>'+
+    '</div>'+
+    '<div style="font-size:13px;color:var(--muted);margin-bottom:1rem">'+m.present+' of '+g.members+' members present</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;margin-bottom:.75rem">'+
+    '<div><span style="color:var(--muted);display:block;font-size:12px">Total savings</span><strong>'+fmt(m.savings)+'</strong></div>'+
+    '<div><span style="color:var(--muted);display:block;font-size:12px">Member repayments collected</span><strong>'+fmt(m.memrepay)+'</strong></div>'+
+    '<div><span style="color:var(--muted);display:block;font-size:12px">Loans disbursed to members</span><strong>'+fmt(m.disbursed)+'</strong></div>'+
+    '<div><span style="color:var(--muted);display:block;font-size:12px">Remitted to lender</span><strong>'+fmt(m.repaid)+'</strong></div>'+
+    '</div>'+
+    '<div style="font-size:12px;color:var(--muted)">Remittance: '+remitLabel+'</div>'+
+    (m.notes?'<div style="margin-top:.5rem;font-size:13px;color:var(--muted)">Notes: '+m.notes+'</div>':'')+
+    amendHtml+
+    '</div>';
+
+  document.getElementById('amend-auth').style.display='none';
+  document.getElementById('amend-chk').checked=false;
+  document.getElementById('amend-err').style.display='none';
+  document.getElementById('amend-chair-name').textContent=g.chair||'chairperson';
+
+  // store which meeting is being reviewed
+  logAmendId=m.id;
+
+  document.getElementById('log-review').style.display='block';
+  document.getElementById('log-wizard').style.display='none';
+}
+
+document.getElementById('log-new-btn').addEventListener('click', function(){
+  logAmendId=null;
+  showWizardFresh();
+});
+
+document.getElementById('amend-btn').addEventListener('click', function(){
+  var auth=document.getElementById('amend-auth');
+  auth.style.display=auth.style.display==='none'?'block':'none';
+  document.getElementById('amend-chk').checked=false;
+  document.getElementById('amend-err').style.display='none';
+});
+
+document.getElementById('amend-cancel').addEventListener('click', function(){
+  document.getElementById('amend-auth').style.display='none';
+  document.getElementById('amend-chk').checked=false;
+});
+
+document.getElementById('amend-confirm').addEventListener('click', function(){
+  if(!document.getElementById('amend-chk').checked){
+    document.getElementById('amend-err').textContent='Please tick the confirmation box to proceed.';
+    document.getElementById('amend-err').style.display='block';
+    return;
+  }
+  document.getElementById('amend-err').style.display='none';
+  // load existing record into wizard
+  var g=getG();
+  var m=g.meetings.find(function(x){ return x.id===logAmendId; });
+  if(!m) return;
+  showWizardAmend(m);
+});
+
+// ── WIZARD: fresh new entry ──
+function showWizardFresh(){
+  logAmendId=null; logRemitChoice=null; logFullPartial=null;
+  document.getElementById('amend-banner').style.display='none';
+  document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('l-present').value='';
+  document.getElementById('l-notes').value='';
+  document.getElementById('l-savings').value='';
+  document.getElementById('l-memrepay').value='';
+  document.getElementById('l-disbursed').value='';
+  var rp=document.getElementById('l-repaid'); if(rp) rp.value='';
+  document.getElementById('l-qhint').innerHTML='';
+  document.querySelectorAll('.tog-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.getElementById('remit-detail').style.display='none';
+  document.getElementById('remit-amount-field').style.display='none';
+  document.getElementById('remit-full-info').style.display='none';
+  resetSaveBtn();
+  document.getElementById('log-review').style.display='none';
+  document.getElementById('log-wizard').style.display='block';
+  logStepShow(1);
+}
+
+// ── WIZARD: amend existing ──
+function showWizardAmend(m){
+  logAmendId=m.id; logRemitChoice=m.remitChoice||null; logFullPartial=m.remitType||null;
+  document.getElementById('amend-banner').style.display='block';
+  document.getElementById('l-date').value=m.date||'';
+  document.getElementById('l-present').value=m.present||'';
+  document.getElementById('l-notes').value=m.notes||'';
+  document.getElementById('l-savings').value=m.savings||0;
+  document.getElementById('l-memrepay').value=m.memrepay||0;
+  document.getElementById('l-disbursed').value=m.disbursed||0;
+  // fire quorum hint
+  var g=getG();
+  var thresh=Math.ceil((g.members||0)*(g.quorum||80)/100);
+  var present=m.present||0;
+  var el=document.getElementById('l-qhint');
+  el.className='q-hint '+(present>=thresh?'ok':'fail');
+  el.innerHTML=present>=thresh?'&#10003; Quorum met ('+present+' present, threshold '+thresh+')':'&#10007; Below quorum ('+present+' present, need '+thresh+')';
+  // restore step 3 state
+  document.querySelectorAll('.tog-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.getElementById('remit-detail').style.display='none';
+  document.getElementById('remit-amount-field').style.display='none';
+  document.getElementById('remit-full-info').style.display='none';
+  if(logRemitChoice==='no'){
+    document.getElementById('tog-no').classList.add('selected');
+  } else if(logRemitChoice==='yes'){
+    document.getElementById('tog-yes').classList.add('selected');
+    document.getElementById('remit-detail').style.display='block';
+    if(logFullPartial==='full'){
+      document.getElementById('tog-full').classList.add('selected');
+      var monthly=g&&g.totaldue?Math.round(g.totaldue/12):0;
+      var info=document.getElementById('remit-full-info');
+      info.style.display='block';
+      info.innerHTML='&#10003; Full monthly instalment: '+fmt(monthly)+' will be recorded.';
+    } else if(logFullPartial==='partial'){
+      document.getElementById('tog-partial').classList.add('selected');
+      document.getElementById('remit-amount-field').style.display='block';
+      var rp=document.getElementById('l-repaid'); if(rp) rp.value=m.repaid||0;
+    }
+  }
+  checkSaveReady();
+  document.getElementById('log-review').style.display='none';
+  document.getElementById('log-wizard').style.display='block';
+  logStepShow(1);
+}
+
+// ── Step navigation ──
 function logStepShow(n){
   [1,2,3].forEach(function(i){
     document.getElementById('log-step'+i).style.display=i===n?'block':'none';
-    var ls=document.getElementById('ls'+i);
-    ls.className='lstep'+(i<n?' done':i===n?' active':'');
+    document.getElementById('ls'+i).className='lstep'+(i<n?' done':i===n?' active':'');
   });
+  ['l-err1','l-err2','l-err3'].forEach(function(id){ document.getElementById(id).style.display='none'; });
 }
 
-// Step 1 → 2
+document.getElementById('log-cancel-wizard').addEventListener('click', function(){
+  var g=getG(); var ms=g?g.meetings||[]:[];
+  if(ms.length>0) showReview(ms[0]); else { document.getElementById('log-wizard').style.display='none'; }
+});
+
 document.getElementById('log-next1').addEventListener('click', function(){
   var date=document.getElementById('l-date').value;
   var present=parseInt(document.getElementById('l-present').value)||0;
   var err=document.getElementById('l-err1');
   if(!date){ err.textContent='Please enter the meeting date.'; err.style.display='block'; return; }
   if(!present){ err.textContent='Please enter members present.'; err.style.display='block'; return; }
-  err.style.display='none';
-  logStepShow(2);
+  err.style.display='none'; logStepShow(2);
 });
 
-// Step 2 → back
 document.getElementById('log-back2').addEventListener('click', function(){ logStepShow(1); });
 
-// Step 2 → 3
 document.getElementById('log-next2').addEventListener('click', function(){
-  var savings=document.getElementById('l-savings').value;
-  var memrepay=document.getElementById('l-memrepay').value;
-  var disbursed=document.getElementById('l-disbursed').value;
+  var s=document.getElementById('l-savings').value;
+  var r=document.getElementById('l-memrepay').value;
+  var d2=document.getElementById('l-disbursed').value;
   var err=document.getElementById('l-err2');
-  if(savings===''||memrepay===''||disbursed===''){ err.textContent='Please enter all three collection fields (use 0 if nil).'; err.style.display='block'; return; }
-  err.style.display='none';
-  // reset step 3 state
-  logRemitChoice=null; logFullPartial=null;
-  document.getElementById('remit-detail').style.display='none';
-  document.getElementById('remit-amount-field').style.display='none';
-  document.getElementById('remit-full-info').style.display='none';
-  var repaidEl=document.getElementById('l-repaid'); if(repaidEl) repaidEl.value='';
-  document.querySelectorAll('.tog-btn').forEach(function(b){ b.classList.remove('selected'); });
-  document.getElementById('log-save-btn').disabled=true;
-  document.getElementById('log-save-btn').style.opacity='0.5';
-  document.getElementById('log-save-btn').style.cursor='not-allowed';
-  logStepShow(3);
+  if(s===''||r===''||d2===''){ err.textContent='Please enter all three fields (use 0 if nil).'; err.style.display='block'; return; }
+  err.style.display='none'; logStepShow(3);
 });
 
-// Step 3 → back
 document.getElementById('log-back3').addEventListener('click', function(){ logStepShow(2); });
 
-// Yes / No toggle
+// Yes / No toggles
 document.getElementById('tog-yes').addEventListener('click', function(){
   logRemitChoice='yes'; logFullPartial=null;
   document.getElementById('tog-yes').classList.add('selected');
@@ -795,19 +1003,16 @@ document.getElementById('tog-no').addEventListener('click', function(){
   checkSaveReady();
 });
 
-// Full / Partial toggle
+// Full / Partial toggles
 document.getElementById('tog-full').addEventListener('click', function(){
   logFullPartial='full';
   document.getElementById('tog-full').classList.add('selected');
   document.getElementById('tog-partial').classList.remove('selected');
   document.getElementById('remit-amount-field').style.display='none';
-  // Show full monthly amount info
   var g=getG();
-  var st=gStats(g);
   var monthly=g&&g.totaldue?Math.round(g.totaldue/12):0;
   var info=document.getElementById('remit-full-info');
   info.style.display='block';
-  info.textContent='&#10003; Full monthly instalment: '+fmt(monthly)+' will be recorded.';
   info.innerHTML='&#10003; Full monthly instalment: '+fmt(monthly)+' will be recorded.';
   checkSaveReady();
 });
@@ -822,13 +1027,16 @@ document.getElementById('tog-partial').addEventListener('click', function(){
 });
 document.getElementById('l-repaid').addEventListener('input', checkSaveReady);
 
+function resetSaveBtn(){
+  var btn=document.getElementById('log-save-btn');
+  btn.disabled=true; btn.style.opacity='0.5'; btn.style.cursor='not-allowed';
+}
 function checkSaveReady(){
   var ready=false;
   if(logRemitChoice==='no') ready=true;
   else if(logRemitChoice==='yes'&&logFullPartial==='full') ready=true;
   else if(logRemitChoice==='yes'&&logFullPartial==='partial'){
-    var v=parseFloat(document.getElementById('l-repaid').value)||0;
-    ready=v>0;
+    ready=(parseFloat(document.getElementById('l-repaid').value)||0)>0;
   }
   var btn=document.getElementById('log-save-btn');
   btn.disabled=!ready;
@@ -836,7 +1044,7 @@ function checkSaveReady(){
   btn.style.cursor=ready?'pointer':'not-allowed';
 }
 
-// Save
+// ── SAVE (new or amend) ──
 document.getElementById('log-save-btn').addEventListener('click', function(){
   if(this.disabled) return;
   var err=document.getElementById('l-err3');
@@ -852,30 +1060,68 @@ document.getElementById('log-save-btn').addEventListener('click', function(){
   }
   err.style.display='none';
   var d=db();
-  if(!g.meetings) g.meetings=[];
-  g.meetings.push({
-    id:'m'+Date.now(),
-    date:document.getElementById('l-date').value,
-    present:parseInt(document.getElementById('l-present').value)||0,
-    savings:parseFloat(document.getElementById('l-savings').value)||0,
-    memrepay:parseFloat(document.getElementById('l-memrepay').value)||0,
-    disbursed:parseFloat(document.getElementById('l-disbursed').value)||0,
-    repaid:repaidAmt,
-    notes:document.getElementById('l-notes').value.trim(),
-    remitChoice:logRemitChoice,
-    remitType:logFullPartial
-  });
-  g.meetings.sort(function(a,b){ return b.date.localeCompare(a.date); });
-  dbSave(d);
-  // reset all fields
-  ['l-present','l-savings','l-memrepay','l-disbursed','l-notes'].forEach(function(id){ document.getElementById(id).value=''; });
-  var rp=document.getElementById('l-repaid'); if(rp) rp.value='';
-  document.getElementById('l-qhint').innerHTML='';
-  document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
-  logRemitChoice=null; logFullPartial=null;
-  var ok=document.getElementById('l-ok');
-  ok.textContent='Meeting saved.'; ok.style.display='block';
-  setTimeout(function(){ ok.style.display='none'; logStepShow(1); },1800);
+  var now=new Date().toLocaleString('en-GB');
+
+  if(logAmendId){
+    // AMEND existing record
+    var m=g.meetings.find(function(x){ return x.id===logAmendId; });
+    if(m){
+      // build amendment summary
+      var changes=[];
+      if(m.date!==document.getElementById('l-date').value) changes.push('date: '+m.date+' → '+document.getElementById('l-date').value);
+      var newPresent=parseInt(document.getElementById('l-present').value)||0;
+      if(m.present!==newPresent) changes.push('present: '+m.present+' → '+newPresent);
+      var newSav=parseFloat(document.getElementById('l-savings').value)||0;
+      if(m.savings!==newSav) changes.push('savings: '+fmt(m.savings)+' → '+fmt(newSav));
+      var newMem=parseFloat(document.getElementById('l-memrepay').value)||0;
+      if(m.memrepay!==newMem) changes.push('repayments: '+fmt(m.memrepay)+' → '+fmt(newMem));
+      var newDis=parseFloat(document.getElementById('l-disbursed').value)||0;
+      if(m.disbursed!==newDis) changes.push('disbursed: '+fmt(m.disbursed)+' → '+fmt(newDis));
+      if(m.repaid!==repaidAmt) changes.push('remitted: '+fmt(m.repaid)+' → '+fmt(repaidAmt));
+      var summary=changes.length?changes.join('; '):'No field changes detected';
+      if(!m.amendments) m.amendments=[];
+      m.amendments.push({ts:now,summary:summary});
+      // apply changes
+      m.date=document.getElementById('l-date').value;
+      m.present=parseInt(document.getElementById('l-present').value)||0;
+      m.savings=parseFloat(document.getElementById('l-savings').value)||0;
+      m.memrepay=parseFloat(document.getElementById('l-memrepay').value)||0;
+      m.disbursed=parseFloat(document.getElementById('l-disbursed').value)||0;
+      m.repaid=repaidAmt;
+      m.notes=document.getElementById('l-notes').value.trim();
+      m.remitChoice=logRemitChoice;
+      m.remitType=logFullPartial;
+    }
+    g.meetings.sort(function(a,b){ return b.date.localeCompare(a.date); });
+    dbSave(d);
+    var savedM=g.meetings.find(function(x){ return x.id===logAmendId; });
+    showReview(savedM);
+    renderChairDash();
+    renderChairHist();
+  } else {
+    // NEW record
+    if(!g.meetings) g.meetings=[];
+    var newM={
+      id:'m'+Date.now(),
+      date:document.getElementById('l-date').value,
+      present:parseInt(document.getElementById('l-present').value)||0,
+      savings:parseFloat(document.getElementById('l-savings').value)||0,
+      memrepay:parseFloat(document.getElementById('l-memrepay').value)||0,
+      disbursed:parseFloat(document.getElementById('l-disbursed').value)||0,
+      repaid:repaidAmt,
+      notes:document.getElementById('l-notes').value.trim(),
+      remitChoice:logRemitChoice,
+      remitType:logFullPartial,
+      amendments:[]
+    };
+    g.meetings.push(newM);
+    g.meetings.sort(function(a,b){ return b.date.localeCompare(a.date); });
+    dbSave(d);
+    logAmendId=newM.id;
+    showReview(newM);
+    renderChairDash();
+    renderChairHist();
+  }
 });
 
 function renderChairHist(){
@@ -886,20 +1132,30 @@ function renderChairHist(){
   el.innerHTML=ms.map(function(m){
     var hasQ=m.present>=thresh;
     var dStr=new Date(m.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+    var amendHtml='';
+    if(m.amendments&&m.amendments.length){
+      amendHtml='<div style="margin-top:.75rem;border-top:1px dashed var(--border);padding-top:.75rem">'+
+        '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem">&#9998; Amendment log ('+m.amendments.length+')</div>'+
+        m.amendments.map(function(a){
+          return '<div style="font-size:12px;color:var(--muted);padding:4px 0;border-bottom:1px solid var(--gray100)">'+
+            '<span style="color:var(--amber);font-weight:600">'+a.ts+'</span><br>'+a.summary+'</div>';
+        }).join('')+'</div>';
+    }
     return '<div class="mtg-card">'+
       '<div class="mtg-header"><div style="font-weight:700">'+dStr+'</div>'+
       '<div style="display:flex;gap:6px;align-items:center"><span class="badge '+(hasQ?'badge-ok':'badge-fail')+'">'+(hasQ?'Quorum met':'Below quorum')+'</span>'+
       '<button class="btn btn-sm btn-danger" data-mid="'+m.id+'">&#10005;</button></div></div>'+
       '<div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">'+m.present+' of '+g.members+' present</div>'+
       '<div class="mtg-grid">'+
-      '<div class="mtg-item"><span>Savings collected</span><strong>'+fmt(m.savings)+'</strong></div>'+
-      '<div class="mtg-item"><span>Member repayments</span><strong>'+fmt(m.memrepay)+'</strong></div>'+
-      '<div class="mtg-item"><span>Disbursed to members</span><strong>'+fmt(m.disbursed)+'</strong></div>'+
+      '<div class="mtg-item"><span>Total savings</span><strong>'+fmt(m.savings)+'</strong></div>'+
+      '<div class="mtg-item"><span>Member repayments collected</span><strong>'+fmt(m.memrepay)+'</strong></div>'+
+      '<div class="mtg-item"><span>Loans disbursed to members</span><strong>'+fmt(m.disbursed)+'</strong></div>'+
       '<div class="mtg-item"><span>Remitted to lender</span><strong>'+fmt(m.repaid)+'</strong></div>'+
-      '</div>'+(m.notes?'<div style="margin-top:.75rem;font-size:13px;color:var(--muted);border-top:1px solid var(--border);padding-top:.75rem">'+m.notes+'</div>':'')+
+      '</div>'+
+      (m.notes?'<div style="margin-top:.75rem;font-size:13px;color:var(--muted);border-top:1px solid var(--border);padding-top:.75rem">'+m.notes+'</div>':'')+
+      amendHtml+
       '</div>';
   }).join('');
-  // bind delete buttons
   document.querySelectorAll('#c-hist-content button[data-mid]').forEach(function(btn){
     btn.addEventListener('click', function(){
       var mid=this.getAttribute('data-mid');
@@ -974,9 +1230,9 @@ function obsDetail(gid){
       '<div class="mtg-header"><div style="font-weight:700">'+dStr+'</div><span class="badge '+(hasQ?'badge-ok':'badge-fail')+'">'+(hasQ?'Quorum met':'Below quorum')+'</span></div>'+
       '<div style="font-size:12px;color:var(--muted);margin-bottom:.75rem">'+m.present+' of '+g.members+' present</div>'+
       '<div class="mtg-grid">'+
-      '<div class="mtg-item"><span>Savings collected</span><strong>'+fmt(m.savings)+'</strong></div>'+
-      '<div class="mtg-item"><span>Member repayments</span><strong>'+fmt(m.memrepay)+'</strong></div>'+
-      '<div class="mtg-item"><span>Disbursed to members</span><strong>'+fmt(m.disbursed)+'</strong></div>'+
+      '<div class="mtg-item"><span>Total savings</span><strong>'+fmt(m.savings)+'</strong></div>'+
+      '<div class="mtg-item"><span>Member repayments collected</span><strong>'+fmt(m.memrepay)+'</strong></div>'+
+      '<div class="mtg-item"><span>Loans disbursed to members</span><strong>'+fmt(m.disbursed)+'</strong></div>'+
       '<div class="mtg-item"><span>Remitted to lender</span><strong>'+fmt(m.repaid)+'</strong></div>'+
       '</div>'+(m.notes?'<div style="margin-top:.75rem;font-size:13px;color:var(--muted);border-top:1px solid var(--border);padding-top:.75rem">'+m.notes+'</div>':'')+
       '</div>';
@@ -998,9 +1254,9 @@ function obsDetail(gid){
     '<div style="font-size:12px;color:var(--muted);margin-top:4px">'+pct+'% repaid &middot; Deadline: '+(g.deadline||'&mdash;')+'</div>'+
     '<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">'+
     '<div class="stat-grid">'+
-    '<div class="stat"><div class="stat-label">Savings collected</div><div class="stat-val">'+fmt(st.totSav)+'</div></div>'+
-    '<div class="stat"><div class="stat-label">Member repayments</div><div class="stat-val">'+fmt(st.totMem)+'</div></div>'+
-    '<div class="stat"><div class="stat-label">Disbursed to members</div><div class="stat-val">'+fmt(st.totDis)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Total savings collected</div><div class="stat-val">'+fmt(st.totSav)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Member repayments collected</div><div class="stat-val">'+fmt(st.totMem)+'</div></div>'+
+    '<div class="stat"><div class="stat-label">Loans disbursed to members</div><div class="stat-val">'+fmt(st.totDis)+'</div></div>'+
     '</div><hr style="border:none;border-top:1px solid var(--border);margin:1rem 0">'+
     '<div class="stat-grid">'+
     '<div class="stat"><div class="stat-label">Meetings held</div><div class="stat-val">'+st.count+'</div></div>'+
