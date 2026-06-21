@@ -92,6 +92,19 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
 .reset-confirm{background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:1.5rem;margin-top:1rem;text-align:center}
 .reset-confirm h3{color:var(--red);margin-bottom:.5rem}
 .reset-confirm p{font-size:14px;color:var(--muted);margin-bottom:1rem}
+/* Log meeting wizard */
+.lstep{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--muted)}
+.lstep.active{color:var(--green-dark);font-weight:700}
+.lstep.done{color:var(--green)}
+.lstep-dot{width:22px;height:22px;border-radius:50%;background:var(--gray200);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.lstep.active .lstep-dot{background:var(--green);color:#fff}
+.lstep.done .lstep-dot{background:var(--green-light);color:var(--green)}
+.lstep-line{flex:1;height:1px;background:var(--gray200)}
+/* Toggle buttons */
+.tog-btn{padding:8px 20px;border-radius:var(--radius);border:2px solid var(--border);background:#fff;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;transition:all .15s}
+.tog-btn:hover{border-color:var(--green-mid);background:var(--green-light)}
+.tog-btn.selected{border-color:var(--green);background:var(--green-light);color:var(--green-dark);font-weight:700}
+.alert-ok{background:#dcfce7;color:#15803d;border:1px solid #86efac;padding:10px 14px;border-radius:var(--radius);font-size:13px;margin-top:.75rem}
 </style>
 </head>
 <body>
@@ -289,31 +302,85 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
     </div>
     <div id="ct-dash"><div id="c-dash-content"></div></div>
     <div id="ct-log" style="display:none">
-      <div class="card">
-        <div class="card-title">Meeting details</div>
-        <div class="row2">
-          <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
-          <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0"></div>
+
+      <!-- Step progress bar -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:1.25rem" id="log-steps">
+        <div class="lstep active" id="ls1"><div class="lstep-dot">1</div><span>Meeting details</span></div>
+        <div class="lstep-line"></div>
+        <div class="lstep" id="ls2"><div class="lstep-dot">2</div><span>Collections</span></div>
+        <div class="lstep-line"></div>
+        <div class="lstep" id="ls3"><div class="lstep-dot">3</div><span>Remittance</span></div>
+      </div>
+
+      <!-- STEP 1: Meeting details -->
+      <div id="log-step1">
+        <div class="card">
+          <div class="card-title">Step 1 of 3 &mdash; Meeting details</div>
+          <div class="row2">
+            <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
+            <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0"></div>
+          </div>
+          <div id="l-qhint"></div>
+          <div class="field"><label>Notes (optional)</label><input type="text" id="l-notes" placeholder="Any remarks about this meeting"></div>
         </div>
-        <div id="l-qhint"></div>
+        <p id="l-err1" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+        <button class="btn btn-primary btn-full" id="log-next1">Next &rarr;</button>
       </div>
-      <div class="card">
-        <div class="card-title">Collections this meeting (TZS)</div>
-        <div class="row2">
-          <div class="field"><label>Savings contributions</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
-          <div class="field"><label>Member repayments collected</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
+
+      <!-- STEP 2: Collections -->
+      <div id="log-step2" style="display:none">
+        <div class="card">
+          <div class="card-title">Step 2 of 3 &mdash; Collections this meeting (TZS)</div>
+          <div class="alert alert-info" style="margin-bottom:.875rem">Enter 0 if nothing was collected for a particular item.</div>
+          <div class="row2">
+            <div class="field"><label>Savings contributions *</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
+            <div class="field"><label>Member repayments collected *</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
+          </div>
+          <div class="field"><label>Loans disbursed to members from external loan *</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
         </div>
-        <div class="field"><label>Loans disbursed to members from external loan</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
+        <p id="l-err2" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="log-back2">&larr; Back</button>
+          <button class="btn btn-primary btn-full" id="log-next2">Next &rarr;</button>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">Remittance to lender</div>
-        <div class="alert alert-info" style="margin-bottom:.875rem">Only fill this if the group actually transferred funds to the lender on this date.</div>
-        <div class="field"><label>Amount remitted to lender (TZS)</label><input type="number" id="l-repaid" min="0" placeholder="0"></div>
+
+      <!-- STEP 3: Remittance -->
+      <div id="log-step3" style="display:none">
+        <div class="card">
+          <div class="card-title">Step 3 of 3 &mdash; Remittance to lender</div>
+
+          <div class="field">
+            <label>Did the group remit any amount to the lender at this meeting? *</label>
+            <div style="display:flex;gap:10px;margin-top:6px">
+              <button class="tog-btn" id="tog-yes" data-val="yes">Yes</button>
+              <button class="tog-btn" id="tog-no" data-val="no">No</button>
+            </div>
+          </div>
+
+          <div id="remit-detail" style="display:none">
+            <div class="field" style="margin-top:.5rem">
+              <label>Full amount or partial? *</label>
+              <div style="display:flex;gap:10px;margin-top:6px">
+                <button class="tog-btn" id="tog-full" data-val="full">Full amount</button>
+                <button class="tog-btn" id="tog-partial" data-val="partial">Partial amount</button>
+              </div>
+            </div>
+            <div class="field" id="remit-amount-field" style="display:none">
+              <label>Amount remitted (TZS) *</label>
+              <input type="number" id="l-repaid" min="0" placeholder="0">
+            </div>
+            <div id="remit-full-info" style="display:none" class="alert alert-ok" style="margin-top:.5rem"></div>
+          </div>
+        </div>
+        <p id="l-err3" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="log-back3">&larr; Back</button>
+          <button class="btn btn-primary btn-full" id="log-save-btn" disabled style="opacity:.5;cursor:not-allowed">Save meeting record</button>
+        </div>
+        <p id="l-ok" style="color:#15803d;font-size:13px;margin-top:.5rem;display:none"></p>
       </div>
-      <div class="field"><label>Notes (optional)</label><input type="text" id="l-notes" placeholder="Any remarks"></div>
-      <button class="btn btn-primary btn-full" id="log-mtg-btn">Save meeting record</button>
-      <p id="l-err" style="color:var(--red);font-size:13px;margin-top:.5rem;display:none"></p>
-      <p id="l-ok" style="color:#15803d;font-size:13px;margin-top:.5rem;display:none"></p>
+
     </div>
     <div id="ct-hist" style="display:none"><div id="c-hist-content"></div></div>
   </div>
@@ -604,7 +671,10 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).classList.add('active');
   if(tab==='dash') renderChairDash();
   if(tab==='hist') renderChairHist();
-  if(tab==='log') document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+  if(tab==='log'){
+    document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+    logStepShow(1);
+  }
 }
 document.getElementById('tab-dash').addEventListener('click', function(){ switchTab('dash'); });
 document.getElementById('tab-log').addEventListener('click', function(){ switchTab('log'); });
@@ -657,28 +727,159 @@ document.getElementById('l-present').addEventListener('input', function(){
   var el=document.getElementById('l-qhint');
   if(!present){ el.textContent=''; el.className=''; return; }
   el.className='q-hint '+(present>=thresh?'ok':'fail');
-  el.textContent=present>=thresh?'&#10003; Quorum met ('+present+' present, threshold '+thresh+')':'&#10007; Below quorum ('+present+' present, need '+thresh+')';
+  el.innerHTML=present>=thresh?'&#10003; Quorum met ('+present+' present, threshold '+thresh+')':'&#10007; Below quorum ('+present+' present, need '+thresh+')';
 });
 
-document.getElementById('log-mtg-btn').addEventListener('click', function(){
-  var date=document.getElementById('l-date').value, present=parseInt(document.getElementById('l-present').value)||0;
-  var err=document.getElementById('l-err'), ok=document.getElementById('l-ok');
-  if(!date||!present){ err.textContent='Please enter date and members present.'; err.style.display='block'; ok.style.display='none'; return; }
+// ── LOG MEETING WIZARD ──
+var logRemitChoice=null, logFullPartial=null;
+
+function logStepShow(n){
+  [1,2,3].forEach(function(i){
+    document.getElementById('log-step'+i).style.display=i===n?'block':'none';
+    var ls=document.getElementById('ls'+i);
+    ls.className='lstep'+(i<n?' done':i===n?' active':'');
+  });
+}
+
+// Step 1 → 2
+document.getElementById('log-next1').addEventListener('click', function(){
+  var date=document.getElementById('l-date').value;
+  var present=parseInt(document.getElementById('l-present').value)||0;
+  var err=document.getElementById('l-err1');
+  if(!date){ err.textContent='Please enter the meeting date.'; err.style.display='block'; return; }
+  if(!present){ err.textContent='Please enter members present.'; err.style.display='block'; return; }
   err.style.display='none';
-  var d=db(); var g=getG();
+  logStepShow(2);
+});
+
+// Step 2 → back
+document.getElementById('log-back2').addEventListener('click', function(){ logStepShow(1); });
+
+// Step 2 → 3
+document.getElementById('log-next2').addEventListener('click', function(){
+  var savings=document.getElementById('l-savings').value;
+  var memrepay=document.getElementById('l-memrepay').value;
+  var disbursed=document.getElementById('l-disbursed').value;
+  var err=document.getElementById('l-err2');
+  if(savings===''||memrepay===''||disbursed===''){ err.textContent='Please enter all three collection fields (use 0 if nil).'; err.style.display='block'; return; }
+  err.style.display='none';
+  // reset step 3 state
+  logRemitChoice=null; logFullPartial=null;
+  document.getElementById('remit-detail').style.display='none';
+  document.getElementById('remit-amount-field').style.display='none';
+  document.getElementById('remit-full-info').style.display='none';
+  var repaidEl=document.getElementById('l-repaid'); if(repaidEl) repaidEl.value='';
+  document.querySelectorAll('.tog-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.getElementById('log-save-btn').disabled=true;
+  document.getElementById('log-save-btn').style.opacity='0.5';
+  document.getElementById('log-save-btn').style.cursor='not-allowed';
+  logStepShow(3);
+});
+
+// Step 3 → back
+document.getElementById('log-back3').addEventListener('click', function(){ logStepShow(2); });
+
+// Yes / No toggle
+document.getElementById('tog-yes').addEventListener('click', function(){
+  logRemitChoice='yes'; logFullPartial=null;
+  document.getElementById('tog-yes').classList.add('selected');
+  document.getElementById('tog-no').classList.remove('selected');
+  document.getElementById('remit-detail').style.display='block';
+  document.getElementById('remit-amount-field').style.display='none';
+  document.getElementById('remit-full-info').style.display='none';
+  document.getElementById('tog-full').classList.remove('selected');
+  document.getElementById('tog-partial').classList.remove('selected');
+  checkSaveReady();
+});
+document.getElementById('tog-no').addEventListener('click', function(){
+  logRemitChoice='no'; logFullPartial=null;
+  document.getElementById('tog-no').classList.add('selected');
+  document.getElementById('tog-yes').classList.remove('selected');
+  document.getElementById('remit-detail').style.display='none';
+  checkSaveReady();
+});
+
+// Full / Partial toggle
+document.getElementById('tog-full').addEventListener('click', function(){
+  logFullPartial='full';
+  document.getElementById('tog-full').classList.add('selected');
+  document.getElementById('tog-partial').classList.remove('selected');
+  document.getElementById('remit-amount-field').style.display='none';
+  // Show full monthly amount info
+  var g=getG();
+  var st=gStats(g);
+  var monthly=g&&g.totaldue?Math.round(g.totaldue/12):0;
+  var info=document.getElementById('remit-full-info');
+  info.style.display='block';
+  info.textContent='&#10003; Full monthly instalment: '+fmt(monthly)+' will be recorded.';
+  info.innerHTML='&#10003; Full monthly instalment: '+fmt(monthly)+' will be recorded.';
+  checkSaveReady();
+});
+document.getElementById('tog-partial').addEventListener('click', function(){
+  logFullPartial='partial';
+  document.getElementById('tog-partial').classList.add('selected');
+  document.getElementById('tog-full').classList.remove('selected');
+  document.getElementById('remit-amount-field').style.display='block';
+  document.getElementById('remit-full-info').style.display='none';
+  document.getElementById('l-repaid').value='';
+  checkSaveReady();
+});
+document.getElementById('l-repaid').addEventListener('input', checkSaveReady);
+
+function checkSaveReady(){
+  var ready=false;
+  if(logRemitChoice==='no') ready=true;
+  else if(logRemitChoice==='yes'&&logFullPartial==='full') ready=true;
+  else if(logRemitChoice==='yes'&&logFullPartial==='partial'){
+    var v=parseFloat(document.getElementById('l-repaid').value)||0;
+    ready=v>0;
+  }
+  var btn=document.getElementById('log-save-btn');
+  btn.disabled=!ready;
+  btn.style.opacity=ready?'1':'0.5';
+  btn.style.cursor=ready?'pointer':'not-allowed';
+}
+
+// Save
+document.getElementById('log-save-btn').addEventListener('click', function(){
+  if(this.disabled) return;
+  var err=document.getElementById('l-err3');
+  var g=getG();
+  var repaidAmt=0;
+  if(logRemitChoice==='yes'){
+    if(logFullPartial==='full'){
+      repaidAmt=g&&g.totaldue?Math.round(g.totaldue/12):0;
+    } else {
+      repaidAmt=parseFloat(document.getElementById('l-repaid').value)||0;
+      if(!repaidAmt){ err.textContent='Please enter the partial amount remitted.'; err.style.display='block'; return; }
+    }
+  }
+  err.style.display='none';
+  var d=db();
   if(!g.meetings) g.meetings=[];
-  g.meetings.push({id:'m'+Date.now(),date:date,present:present,
+  g.meetings.push({
+    id:'m'+Date.now(),
+    date:document.getElementById('l-date').value,
+    present:parseInt(document.getElementById('l-present').value)||0,
     savings:parseFloat(document.getElementById('l-savings').value)||0,
     memrepay:parseFloat(document.getElementById('l-memrepay').value)||0,
     disbursed:parseFloat(document.getElementById('l-disbursed').value)||0,
-    repaid:parseFloat(document.getElementById('l-repaid').value)||0,
-    notes:document.getElementById('l-notes').value.trim()});
+    repaid:repaidAmt,
+    notes:document.getElementById('l-notes').value.trim(),
+    remitChoice:logRemitChoice,
+    remitType:logFullPartial
+  });
   g.meetings.sort(function(a,b){ return b.date.localeCompare(a.date); });
   dbSave(d);
-  ['l-present','l-savings','l-memrepay','l-disbursed','l-repaid','l-notes'].forEach(function(id){ document.getElementById(id).value=''; });
-  document.getElementById('l-qhint').textContent='';
+  // reset all fields
+  ['l-present','l-savings','l-memrepay','l-disbursed','l-notes'].forEach(function(id){ document.getElementById(id).value=''; });
+  var rp=document.getElementById('l-repaid'); if(rp) rp.value='';
+  document.getElementById('l-qhint').innerHTML='';
+  document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+  logRemitChoice=null; logFullPartial=null;
+  var ok=document.getElementById('l-ok');
   ok.textContent='Meeting saved.'; ok.style.display='block';
-  setTimeout(function(){ ok.style.display='none'; },2500);
+  setTimeout(function(){ ok.style.display='none'; logStepShow(1); },1800);
 });
 
 function renderChairHist(){
