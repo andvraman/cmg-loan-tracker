@@ -316,10 +316,8 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
       <div id="log-step1">
         <div class="card">
           <div class="card-title">Step 1 of 3 &mdash; Meeting details</div>
-          <div class="row2">
-            <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
-            <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0"></div>
-          </div>
+          <div class="field"><label>Meeting date *</label><input type="date" id="l-date"></div>
+          <div class="field"><label>Members present *</label><input type="number" id="l-present" min="0" placeholder="0"></div>
           <div id="l-qhint"></div>
           <div class="field"><label>Notes (optional)</label><input type="text" id="l-notes" placeholder="Any remarks about this meeting"></div>
         </div>
@@ -330,13 +328,11 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
       <!-- STEP 2: Collections -->
       <div id="log-step2" style="display:none">
         <div class="card">
-          <div class="card-title">Step 2 of 3 &mdash; Collections this meeting (TZS)</div>
+          <div class="card-title">Step 2 of 3 &mdash; Transactions this meeting (TZS)</div>
           <div class="alert alert-info" style="margin-bottom:.875rem">Enter 0 if nothing was collected for a particular item.</div>
-          <div class="row2">
-            <div class="field"><label>Savings contributions *</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
-            <div class="field"><label>Member repayments collected *</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
-          </div>
-          <div class="field"><label>Loans disbursed to members from external loan *</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
+          <div class="field"><label>Total savings *</label><input type="number" id="l-savings" min="0" placeholder="0"></div>
+          <div class="field"><label>Total repayments collected from members *</label><input type="number" id="l-memrepay" min="0" placeholder="0"></div>
+          <div class="field"><label>Total loans disbursed to members *</label><input type="number" id="l-disbursed" min="0" placeholder="0"></div>
         </div>
         <p id="l-err2" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
         <div style="display:flex;gap:8px">
