@@ -142,8 +142,6 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
       <div class="step active" id="si-1"><div class="step-dot">1</div>Role</div>
       <div class="step-line"></div>
       <div class="step" id="si-2"><div class="step-dot">2</div>Identity</div>
-      <div class="step-line"></div>
-      <div class="step" id="si-3"><div class="step-dot">3</div>Verify</div>
     </div>
 
     <div id="login-step1">
@@ -178,15 +176,12 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
           <div class="field"><label>CMG Name</label><input type="text" id="auto-name" readonly placeholder="Auto-filled"></div>
           <div class="field"><label>Chairperson</label><input type="text" id="auto-chair" readonly placeholder="Auto-filled"></div>
         </div>
-        <div class="field"><label>Registered phone number</label><input type="tel" id="chair-phone" placeholder="e.g. 0754643521" maxlength="12"></div>
       </div>
       <div id="lga-identity" style="display:none">
         <div style="font-weight:700;font-size:15px;margin-bottom:.75rem">LGA Officer</div>
         <div class="field"><label>Region</label><select id="lga-region"><option value="">&#8212; Select &#8212;</option></select></div>
         <div class="field"><label>District Council</label><select id="lga-district"><option value="">&#8212; Select &#8212;</option></select></div>
-        <div class="field"><label>Ward</label><input type="text" id="lga-ward" placeholder="Your ward name"></div>
-        <div class="field"><label>Your name</label><input type="text" id="lga-name" placeholder="Full name"></div>
-        <div class="field"><label>Phone number</label><input type="tel" id="lga-phone" placeholder="e.g. 0712345678"></div>
+        <div class="field"><label>Ward</label><select id="lga-ward-sel"><option value="">&#8212; Select ward &#8212;</option></select></div>
       </div>
       <div id="fi-identity" style="display:none">
         <div style="font-weight:700;font-size:15px;margin-bottom:.75rem">FI Lender</div>
@@ -198,34 +193,14 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
             <optgroup label="Government / apex"><option>PASS Trust</option><option>Tanzania Agricultural Development Bank (TADB)</option><option>TIB Development Bank</option><option>SIDO</option></optgroup>
           </select>
         </div>
-        <div class="field"><label>Your name</label><input type="text" id="fi-name" placeholder="Full name"></div>
-        <div class="field"><label>Phone number</label><input type="tel" id="fi-phone" placeholder="e.g. 0712345678"></div>
       </div>
       <p id="s2-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
       <div style="display:flex;gap:8px">
         <button class="btn" id="step2-back">&#8592; Back</button>
-        <button class="btn btn-primary btn-full" id="step2-continue">Send OTP</button>
+        <button class="btn btn-primary btn-full" id="step2-continue">Enter</button>
       </div>
     </div>
 
-    <div id="login-step3" style="display:none">
-      <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">Verify your identity</div>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:.5rem" id="otp-msg"></div>
-      <div class="alert alert-info"><strong>Demo mode:</strong> Any 4-digit code is accepted.</div>
-      <div class="otp-digits">
-        <input type="tel" maxlength="1" id="otp0">
-        <input type="tel" maxlength="1" id="otp1">
-        <input type="tel" maxlength="1" id="otp2">
-        <input type="tel" maxlength="1" id="otp3">
-      </div>
-      <p id="s3-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
-      <button class="btn btn-primary btn-full" id="verify-btn">Verify and enter</button>
-      <div style="text-align:center;margin-top:1rem">
-        <button class="btn btn-sm" id="step3-back" style="border:none;color:var(--green)">&#8592; Back</button>
-        <span style="font-size:12px;color:var(--muted);margin:0 8px">&middot;</span>
-        <button class="btn btn-sm" id="resend-btn" style="border:none;color:var(--green)">Resend OTP</button>
-      </div>
-    </div>
     <p style="font-size:11px;color:var(--muted);margin-top:1.25rem;text-align:center">PAMOJA &middot; Prototype &middot; No real authentication &middot; Data stored in this browser</p>
   </div>
 </div>
@@ -509,13 +484,12 @@ document.getElementById('confirm-reset-btn').addEventListener('click', function(
 
 // ── STEP INDICATOR ──
 function setStep(n){
-  [1,2,3].forEach(i=>{
-    const el=document.getElementById('si-'+i);
-    el.className='step'+(i<n?' done':i===n?' active':'');
+  [1,2].forEach(function(i){
+    var el=document.getElementById('si-'+i);
+    if(el) el.className='step'+(i<n?' done':i===n?' active':'');
   });
   document.getElementById('login-step1').style.display=n===1?'block':'none';
   document.getElementById('login-step2').style.display=n===2?'block':'none';
-  document.getElementById('login-step3').style.display=n===3?'block':'none';
 }
 
 // ── ROLE CARDS ──
@@ -529,15 +503,15 @@ function setStep(n){
 
 // ── STEP 1 CONTINUE ──
 document.getElementById('step1-continue').addEventListener('click', function(){
-  const err=document.getElementById('s1-err');
+  var err=document.getElementById('s1-err');
   if(!selectedRole){ err.textContent='Please select a role.'; err.style.display='block'; return; }
   err.style.display='none';
   ['chair-identity','lga-identity','fi-identity'].forEach(function(id){ document.getElementById(id).style.display='none'; });
   document.getElementById(selectedRole+'-identity').style.display='block';
   if(selectedRole==='chair'){
-    const sr=document.getElementById('sel-region');
+    var sr=document.getElementById('sel-region');
     sr.innerHTML='<option value="">&#8212; Select region &#8212;</option>';
-    Object.keys(H).forEach(function(r){ const o=document.createElement('option'); o.value=o.textContent=r; sr.appendChild(o); });
+    Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; sr.appendChild(o); });
     sr.onchange=onRegion;
     document.getElementById('sel-district').onchange=onDistrict;
     document.getElementById('sel-ward').onchange=onWard;
@@ -545,104 +519,97 @@ document.getElementById('step1-continue').addEventListener('click', function(){
     document.getElementById('sel-cmgnum').onchange=onCmgNum;
   }
   if(selectedRole==='lga'){
-    const lr=document.getElementById('lga-region');
+    var lr=document.getElementById('lga-region');
     lr.innerHTML='<option value="">&#8212; Select &#8212;</option>';
-    Object.keys(H).forEach(function(r){ const o=document.createElement('option'); o.value=o.textContent=r; lr.appendChild(o); });
+    Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; lr.appendChild(o); });
+    var ld=document.getElementById('lga-district');
     lr.onchange=function(){
-      const ld=document.getElementById('lga-district');
       ld.innerHTML='<option value="">&#8212; Select &#8212;</option>';
-      if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ const o=document.createElement('option'); o.value=o.textContent=d; ld.appendChild(o); });
+      if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; ld.appendChild(o); });
+      populateLgaWards();
     };
+    ld.onchange=function(){ populateLgaWards(); };
+    populateLgaWards();
   }
   setStep(2);
 });
 
+// Populate LGA ward dropdown with only wards that have mock CMG data
+function populateLgaWards(){
+  var ws=document.getElementById('lga-ward-sel');
+  var region=document.getElementById('lga-region').value;
+  var district=document.getElementById('lga-district').value;
+  var groups=db().groups||[];
+  // Filter groups by selected region/district if chosen, else all
+  var relevant=groups.filter(function(g){
+    if(region&&g.region!==region) return false;
+    if(district&&g.district!==district) return false;
+    return true;
+  });
+  // Unique wards
+  var wards=[];
+  relevant.forEach(function(g){ if(g.ward&&wards.indexOf(g.ward)===-1) wards.push(g.ward); });
+  wards.sort();
+  ws.innerHTML='<option value="">&#8212; Select ward &#8212;</option>';
+  wards.forEach(function(w){ var o=document.createElement('option'); o.value=o.textContent=w; ws.appendChild(o); });
+}
+
 // ── HIERARCHY ──
-const H = MOCK_SEED.hierarchy;
+var H = MOCK_SEED.hierarchy;
 function onRegion(){
-  const r=this.value||document.getElementById('sel-region').value;
-  ['sel-district','sel-ward','sel-village','sel-cmgnum'].forEach(function(id){ const s=document.getElementById(id); s.innerHTML='<option value="">&#8212; Select &#8212;</option>'; s.disabled=true; });
+  var r=document.getElementById('sel-region').value;
+  ['sel-district','sel-ward','sel-village','sel-cmgnum'].forEach(function(id){ var s=document.getElementById(id); s.innerHTML='<option value="">&#8212; Select &#8212;</option>'; s.disabled=true; });
   document.getElementById('auto-name').value=''; document.getElementById('auto-chair').value='';
   if(!r) return;
-  const sd=document.getElementById('sel-district'); sd.disabled=false;
-  Object.keys(H[r]).forEach(function(d){ const o=document.createElement('option'); o.value=o.textContent=d; sd.appendChild(o); });
+  var sd=document.getElementById('sel-district'); sd.disabled=false;
+  Object.keys(H[r]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; sd.appendChild(o); });
 }
 function onDistrict(){
-  const r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value;
-  ['sel-ward','sel-village','sel-cmgnum'].forEach(function(id){ const s=document.getElementById(id); s.innerHTML='<option value="">&#8212; Select &#8212;</option>'; s.disabled=true; });
+  var r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value;
+  ['sel-ward','sel-village','sel-cmgnum'].forEach(function(id){ var s=document.getElementById(id); s.innerHTML='<option value="">&#8212; Select &#8212;</option>'; s.disabled=true; });
   document.getElementById('auto-name').value=''; document.getElementById('auto-chair').value='';
   if(!d) return;
-  const sw=document.getElementById('sel-ward'); sw.disabled=false;
-  Object.keys(H[r][d]).sort().forEach(function(w){ const o=document.createElement('option'); o.value=o.textContent=w; sw.appendChild(o); });
+  var sw=document.getElementById('sel-ward'); sw.disabled=false;
+  Object.keys(H[r][d]).sort().forEach(function(w){ var o=document.createElement('option'); o.value=o.textContent=w; sw.appendChild(o); });
 }
 function onWard(){
-  const r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value, w=document.getElementById('sel-ward').value;
-  ['sel-village','sel-cmgnum'].forEach(function(id){ const s=document.getElementById(id); s.innerHTML='<option value="">&#8212; Select &#8212;</option>'; s.disabled=true; });
+  var r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value, w=document.getElementById('sel-ward').value;
+  ['sel-village','sel-cmgnum'].forEach(function(id){ var s=document.getElementById(id); s.innerHTML='<option value="">&#8212; Select &#8212;</option>'; s.disabled=true; });
   document.getElementById('auto-name').value=''; document.getElementById('auto-chair').value='';
   if(!w) return;
-  const sv=document.getElementById('sel-village'); sv.disabled=false;
-  const villages=H[r][d][w]||[];
-  if(!villages.length){ const o=document.createElement('option'); o.value='(ward level)'; o.textContent='(No separate village)'; sv.appendChild(o); }
-  else villages.forEach(function(v){ const o=document.createElement('option'); o.value=o.textContent=v; sv.appendChild(o); });
+  var sv=document.getElementById('sel-village'); sv.disabled=false;
+  var villages=H[r][d][w]||[];
+  if(!villages.length){ var o=document.createElement('option'); o.value='(ward level)'; o.textContent='(No separate village)'; sv.appendChild(o); }
+  else villages.forEach(function(v){ var o=document.createElement('option'); o.value=o.textContent=v; sv.appendChild(o); });
 }
 function onVillage(){
-  const r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value, w=document.getElementById('sel-ward').value, v=document.getElementById('sel-village').value;
-  const sc=document.getElementById('sel-cmgnum'); sc.innerHTML='<option value="">&#8212; Select CMG &#8212;</option>'; sc.disabled=true;
+  var r=document.getElementById('sel-region').value, d=document.getElementById('sel-district').value, w=document.getElementById('sel-ward').value, v=document.getElementById('sel-village').value;
+  var sc=document.getElementById('sel-cmgnum'); sc.innerHTML='<option value="">&#8212; Select CMG &#8212;</option>'; sc.disabled=true;
   document.getElementById('auto-name').value=''; document.getElementById('auto-chair').value='';
   if(!v) return;
-  const live=db().groups||[];
-  const matches=live.filter(function(g){ return g.region===r&&g.district===d&&g.ward===w&&(g.village===v||v==='(ward level)'); });
+  var live=db().groups||[];
+  var matches=live.filter(function(g){ return g.region===r&&g.district===d&&g.ward===w&&(g.village===v||v==='(ward level)'); });
   if(!matches.length){ sc.innerHTML='<option value="">No CMGs registered here</option>'; return; }
-  matches.forEach(function(g){ const o=document.createElement('option'); o.value=g.cmgNumber||g.id; o.textContent=g.cmgNumber||g.id; sc.appendChild(o); });
+  matches.forEach(function(g){ var o=document.createElement('option'); o.value=g.cmgNumber||g.id; o.textContent=g.cmgNumber||g.id; sc.appendChild(o); });
   sc.disabled=false;
 }
 function onCmgNum(){
-  const num=document.getElementById('sel-cmgnum').value;
-  const g=(db().groups||[]).find(function(x){ return (x.cmgNumber||x.id)===num; });
+  var num=document.getElementById('sel-cmgnum').value;
+  var g=(db().groups||[]).find(function(x){ return (x.cmgNumber||x.id)===num; });
   if(g){ document.getElementById('auto-name').value=g.name; document.getElementById('auto-chair').value=g.chair; }
 }
 
-// ── STEP 2 ──
+// ── STEP 2 → Enter directly (no OTP) ──
 document.getElementById('step2-back').addEventListener('click', function(){ setStep(1); });
 document.getElementById('step2-continue').addEventListener('click', function(){
-  const err=document.getElementById('s2-err'); err.style.display='none';
-  let phone='';
+  var err=document.getElementById('s2-err'); err.style.display='none';
   if(selectedRole==='chair'){
     if(!document.getElementById('sel-cmgnum').value){ err.textContent='Please select a CMG number.'; err.style.display='block'; return; }
-    phone=document.getElementById('chair-phone').value.trim();
-    if(!phone){ err.textContent='Please enter your registered phone number.'; err.style.display='block'; return; }
   } else if(selectedRole==='lga'){
-    const w=document.getElementById('lga-ward').value.trim(), p=document.getElementById('lga-phone').value.trim();
-    if(!w||!p){ err.textContent='Please complete all fields.'; err.style.display='block'; return; }
-    phone=p;
+    if(!document.getElementById('lga-ward-sel').value){ err.textContent='Please select a ward.'; err.style.display='block'; return; }
   } else {
-    const fi=document.getElementById('fi-institution').value, p=document.getElementById('fi-phone').value.trim();
-    if(!fi||!p){ err.textContent='Please complete all fields.'; err.style.display='block'; return; }
-    phone=p;
+    if(!document.getElementById('fi-institution').value){ err.textContent='Please select your institution.'; err.style.display='block'; return; }
   }
-  const masked=phone.length>6?phone.slice(0,4)+'****'+phone.slice(-3):phone;
-  document.getElementById('otp-msg').textContent='A one-time password has been sent to '+masked+'. Enter it below.';
-  [0,1,2,3].forEach(function(i){ document.getElementById('otp'+i).value=''; });
-  setStep(3);
-  setTimeout(function(){ document.getElementById('otp0').focus(); },100);
-});
-
-// ── OTP ──
-[0,1,2,3].forEach(function(i){
-  document.getElementById('otp'+i).addEventListener('input', function(){ if(this.value&&i<3) document.getElementById('otp'+(i+1)).focus(); });
-  document.getElementById('otp'+i).addEventListener('keydown', function(e){ if(e.key==='Backspace'&&!this.value&&i>0) document.getElementById('otp'+(i-1)).focus(); });
-});
-document.getElementById('step3-back').addEventListener('click', function(){ setStep(2); });
-document.getElementById('resend-btn').addEventListener('click', function(){
-  const el=document.getElementById('otp-msg'); const o=el.textContent;
-  el.textContent='OTP resent (demo &#8212; any 4 digits).';
-  setTimeout(function(){ el.textContent=o; },2000);
-});
-document.getElementById('verify-btn').addEventListener('click', function(){
-  const code=[0,1,2,3].map(function(i){ return document.getElementById('otp'+i).value; }).join('');
-  const err=document.getElementById('s3-err');
-  if(!/^\d{4}$/.test(code)){ err.textContent='Please enter all 4 digits.'; err.style.display='block'; return; }
-  err.style.display='none';
   buildSession();
 });
 
@@ -654,9 +621,9 @@ function buildSession(){
   } else if(selectedRole==='lga'){
     SESSION={role:'lga',region:document.getElementById('lga-region').value,
       district:document.getElementById('lga-district').value,
-      ward:document.getElementById('lga-ward').value.trim(),name:document.getElementById('lga-name').value.trim()};
+      ward:document.getElementById('lga-ward-sel').value};
   } else {
-    SESSION={role:'fi',fi:document.getElementById('fi-institution').value,name:document.getElementById('fi-name').value.trim()};
+    SESSION={role:'fi',fi:document.getElementById('fi-institution').value};
   }
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-shell').style.display='block';
@@ -1172,12 +1139,12 @@ function enterObserver(){
   if(SESSION.role==='lga'){
     var w=SESSION.ward.toLowerCase();
     groups=groups.filter(function(g){ return (g.ward&&g.ward.toLowerCase().includes(w))||(g.district&&g.district.toLowerCase().includes(w)); });
-    document.getElementById('obs-title').textContent='LGA Officer · '+SESSION.ward;
-    document.getElementById('obs-sub').textContent=(SESSION.district||'')+' · '+(SESSION.name||'')+' · '+groups.length+' group'+(groups.length!==1?'s':'');
+    document.getElementById('obs-title').textContent='LGA Officer \u00b7 '+SESSION.ward;
+    document.getElementById('obs-sub').textContent=(SESSION.district||'')+' \u00b7 '+groups.length+' group'+(groups.length!==1?'s':'');
   } else {
     groups=groups.filter(function(g){ return g.fi===SESSION.fi; });
     document.getElementById('obs-title').textContent='FI Lender · '+SESSION.fi;
-    document.getElementById('obs-sub').textContent=(SESSION.name||'')+' · '+groups.length+' group'+(groups.length!==1?'s':'')+' with active loans';
+    document.getElementById('obs-sub').textContent=groups.length+' group'+(groups.length!==1?'s':'')+' with active loans';
   }
   SESSION._groups=groups;
   renderObsList(groups);
