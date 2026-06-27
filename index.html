@@ -1503,12 +1503,9 @@ document.getElementById('fi-change-btn').addEventListener('click', function(){ g
 // ── OBSERVER ──
 function enterObserver(){
   var d=db(); var groups=d.groups||[];
-  if(SESSION.role==='lga'){
-    var w=SESSION.ward.toLowerCase();
-    groups=groups.filter(function(g){ return (g.ward&&g.ward.toLowerCase().includes(w))||(g.district&&g.district.toLowerCase().includes(w)); });
-    document.getElementById('obs-title').textContent='LGA Officer \u00b7 '+SESSION.ward;
-    document.getElementById('obs-sub').textContent=(SESSION.district||'')+' \u00b7 '+groups.length+' group'+(groups.length!==1?'s':'');
-  } else {
+  // LGA only — FI routes to enterFi
+  groups=groups.filter(function(g){ return g.district===SESSION.district; });
+  if(SESSION.ward) groups=groups.filter(function(g){ return g.ward===SESSION.ward; });
   var scopeLabel=SESSION.ward?SESSION.ward:'All wards';
   document.getElementById('obs-title').textContent='LGA Officer · '+SESSION.district;
   document.getElementById('obs-sub').textContent=scopeLabel+' · '+groups.length+' group'+(groups.length!==1?'s':'');
