@@ -764,6 +764,7 @@ document.getElementById('step2-continue').addEventListener('click', function(){
     // Go to step 3: scope selection
     document.getElementById('lga-scope').style.display='block';
     document.getElementById('tamisemi-scope').style.display='none';
+    document.getElementById('fi-scope').style.display='none';
     document.getElementById('lga-scope-title').textContent=_lgaOfficer.district+' — Select scope';
     populateLgaWards();
     document.getElementById('s3-err').style.display='none';
@@ -1626,6 +1627,7 @@ function goBackToIdentity(){
     // Already verified — go straight to scope step
     document.getElementById('lga-scope').style.display='block';
     document.getElementById('tamisemi-scope').style.display='none';
+    document.getElementById('fi-scope').style.display='none';
     document.getElementById('lga-scope-title').textContent=_lgaOfficer.district+' — Select scope';
     populateLgaWards();
     setStep(3);
