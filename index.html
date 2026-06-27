@@ -1642,6 +1642,7 @@ function goBackToIdentity(){
   } else if(selectedRole==='tamisemi'&&_tamOfficer){
     document.getElementById('tamisemi-scope').style.display='block';
     document.getElementById('lga-scope').style.display='none';
+    document.getElementById('fi-scope').style.display='none';
     var tr=document.getElementById('tamisemi-region');
     tr.innerHTML='<option value="">&#8212; All regions &#8212;</option>';
     Object.keys(H).sort().forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; tr.appendChild(o); });
