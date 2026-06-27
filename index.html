@@ -138,10 +138,12 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
       </div>
     </div>
 
-    <div class="step-indicator">
+    <div class="step-indicator" id="step-indicator">
       <div class="step active" id="si-1"><div class="step-dot">1</div>Role</div>
       <div class="step-line"></div>
       <div class="step" id="si-2"><div class="step-dot">2</div>Identity</div>
+      <div class="step-line" id="si-line-3"></div>
+      <div class="step" id="si-3"><div class="step-dot">3</div>Scope</div>
     </div>
 
     <div id="login-step1">
@@ -195,10 +197,31 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
         </div>
       </div>
       <div id="lga-identity" style="display:none">
-        <div style="font-weight:700;font-size:15px;margin-bottom:.75rem">LGA Officer</div>
-        <div class="field"><label>Region</label><select id="lga-region"><option value="">&#8212; Select &#8212;</option></select></div>
-        <div class="field"><label>District Council</label><select id="lga-district"><option value="">&#8212; Select &#8212;</option></select></div>
-        <div class="field"><label>Ward</label><select id="lga-ward-sel"><option value="">&#8212; Select ward &#8212;</option></select></div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">LGA Officer — Login</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Enter your officer ID to verify your identity.</div>
+        <div class="field" style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1"><label>Officer ID</label><input type="text" id="inp-lgaid" placeholder="e.g. LGA001" style="text-transform:uppercase"></div>
+          <button class="btn btn-primary" id="btn-lga-lookup" style="margin-bottom:1rem;white-space:nowrap">Verify</button>
+        </div>
+        <div id="lga-lookup-result" style="display:none">
+          <div class="alert-ok" style="margin-bottom:1rem">&#10003; Officer verified</div>
+          <div class="row2">
+            <div class="field"><label>Name</label><input type="text" id="lga-auto-name" readonly></div>
+            <div class="field"><label>District Council</label><input type="text" id="lga-auto-district" readonly></div>
+          </div>
+        </div>
+      </div>
+      <div id="tamisemi-identity" style="display:none">
+        <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">TAMISEMI Officer — Login</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Enter your officer ID to verify your identity.</div>
+        <div class="field" style="display:flex;gap:8px;align-items:flex-end">
+          <div style="flex:1"><label>Officer ID</label><input type="text" id="inp-tamid" placeholder="e.g. TAM001" style="text-transform:uppercase"></div>
+          <button class="btn btn-primary" id="btn-tam-lookup" style="margin-bottom:1rem;white-space:nowrap">Verify</button>
+        </div>
+        <div id="tam-lookup-result" style="display:none">
+          <div class="alert-ok" style="margin-bottom:1rem">&#10003; Officer verified</div>
+          <div class="field"><label>Name</label><input type="text" id="tam-auto-name" readonly></div>
+        </div>
       </div>
       <div id="fi-identity" style="display:none">
         <div style="font-weight:700;font-size:15px;margin-bottom:.75rem">FI Lender</div>
@@ -211,16 +234,47 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
           </select>
         </div>
       </div>
-      <div id="tamisemi-identity" style="display:none">
-        <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">TAMISEMI Officer</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Select your scope. Leave district blank to view an entire region.</div>
-        <div class="field"><label>Region</label><select id="tamisemi-region"><option value="">&#8212; All regions &#8212;</option></select></div>
-        <div class="field"><label>District Council (optional)</label><select id="tamisemi-district"><option value="">&#8212; All districts &#8212;</option></select></div>
-      </div>
+
       <p id="s2-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
       <div style="display:flex;gap:8px">
         <button class="btn" id="step2-back">&#8592; Back</button>
-        <button class="btn btn-primary btn-full" id="step2-continue">Enter</button>
+        <button class="btn btn-primary btn-full" id="step2-continue">Continue &#8594;</button>
+      </div>
+    </div>
+
+    <div id="login-step3" style="display:none">
+      <!-- LGA scope -->
+      <div id="lga-scope" style="display:none">
+        <div style="font-weight:700;font-size:15px;margin-bottom:.25rem" id="lga-scope-title"></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Choose which wards to view.</div>
+        <div class="field">
+          <label>Ward</label>
+          <select id="lga-ward-sel">
+            <option value="">&#8212; All wards in district &#8212;</option>
+          </select>
+        </div>
+      </div>
+      <!-- TAMISEMI scope -->
+      <div id="tamisemi-scope" style="display:none">
+        <div style="font-weight:700;font-size:15px;margin-bottom:.25rem">Select scope</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Choose the region and district to view. Select "All" to see data across all areas.</div>
+        <div class="field">
+          <label>Region</label>
+          <select id="tamisemi-region">
+            <option value="">&#8212; All regions &#8212;</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>District Council</label>
+          <select id="tamisemi-district">
+            <option value="">&#8212; All districts &#8212;</option>
+          </select>
+        </div>
+      </div>
+      <p id="s3-err" style="color:var(--red);font-size:13px;margin-bottom:.5rem;display:none"></p>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="step3-back">&#8592; Back</button>
+        <button class="btn btn-primary btn-full" id="step3-continue">Enter</button>
       </div>
     </div>
 
@@ -456,6 +510,18 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
 <script>
 
 const MOCK_SEED = {"hierarchy":{"Arusha":{"Arusha District Council":{"Bangata":["Midawe","Sasi"],"Bwawani":[],"Ilboru":["Oltulelei"],"Ilkiding'a":["Ilkiding'A","Ilkisongo","Oloigeruno"],"Kimnyak":["Kimnyaki","Lekako","Mitaroli","Olevolos"],"Kiranyi":[],"Kisongo":["Engorora","Ilkerini","Kisongo","Lesiraa","Loovilukuny"],"Kiutu":[],"Laroi":["Enjoro","Laroi"],"Lemanyata":[],"Lengijave":[],"Mateves":["Lemgur","Ngorbob"],"Mlangarini":[],"Moivo":["Ilkilorit","Moivo","Oloresho","Sama"],"Musa":[],"Mwandet":[],"Nduruma":[],"Oldonyosambu":["Oldonyosambu"],"Oldonyowas":[],"Oljoro":[],"Olmotonyi":[],"Oloirien":["Olorieni","Olosiva"],"Olturoto":["Osunyai"],"Olturumet":["Ekenywa","Ilkiushin","Seuri"],"Sambasha":[],"Sokon II":["Nambele","Ngiresi","Sokoni II"],"Tarakwa":[]},"Arumeru District Council":{"Usa River":["Usa River","Mlangarini"],"Tengeru":["Tengeru","Nkoaranga"],"Kikwe":["Kikwe","Kibosho"],"Nduruma":["Nduruma","Maji ya Chai"],"Ngarenaro":["Ngarenaro","Olkejuado"]}},"Singida":{"Singida District Council":{"Ikhanoda":[],"Ilongero":["Ilongero","Sekoutoure"],"Itaja":[],"Kijota":["Ikiwu","Mitonto","Nduu"],"Kinyagigi":["Kihunadi","Kinyagigi","Mitula"],"Kinyeto":["Kinyeto","Minyaa","Mkimbii","Ntunduu"],"Maghojoa":["Ghata"],"Makuro":["Matumbo","Mikuyu","Mpoku"],"Merya":[],"Mgori":[],"Mrama":["Iddi Simba","Itamka","Makhandi","Mrama"],"Msange":[],"Msisi":[],"Mtinko":["Malolo","Minyenye"],"Mudida":["Kibaoni","Mpipiti","Mudida"],"Mughamo":["Msikii"],"Mughunga":[],"Mwasauya":["Mdilu","Mwasauya","Ngamu"],"Ngimu":[],"Ntonge":[],"Ughandi":["Ughandi A"]},"Manyoni District Council":{"Manyoni":["Manyoni","Makiungu"],"Issuna":["Issuna","Mitundu"],"Kintinku":["Kintinku","Chikuyu"],"Matera":["Matera","Nkonko"],"Rungwa":["Rungwa","Mbugani"]}}},"groups":[{"id":"C1001","cmgNumber":"C1001","name":"Uamsho Group","chair":"Lambat Zakaria Luoga","phone":"0754643521","region":"Arusha","district":"Arusha District Council","ward":"Moivo","village":"Ilkilorit","members":22,"quorum":80,"freq":"Monthly","fi":"CRDB Bank","branch":"","loan":3500000,"loandate":"2025-01-10","totaldue":4130000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":15,"savings":149525,"memrepay":319385,"disbursed":70501,"repaid":0,"notes":""},{"id":"m2","date":"2025-02-14","present":19,"savings":123739,"memrepay":335958,"disbursed":66246,"repaid":344167,"notes":""},{"id":"m3","date":"2025-03-16","present":21,"savings":59002,"memrepay":360274,"disbursed":257169,"repaid":344167,"notes":""},{"id":"m4","date":"2025-04-15","present":19,"savings":126833,"memrepay":375494,"disbursed":63734,"repaid":344167,"notes":""},{"id":"m5","date":"2025-05-15","present":22,"savings":130612,"memrepay":293498,"disbursed":108151,"repaid":344167,"notes":""},{"id":"m6","date":"2025-06-14","present":17,"savings":61625,"memrepay":344729,"disbursed":232934,"repaid":344167,"notes":""},{"id":"m7","date":"2025-07-14","present":14,"savings":98412,"memrepay":295745,"disbursed":0,"repaid":0,"notes":""},{"id":"m8","date":"2025-08-13","present":22,"savings":75485,"memrepay":376165,"disbursed":0,"repaid":344167,"notes":""}]},{"id":"C1002","cmgNumber":"C1002","name":"Eimah Women Group","chair":"Martha Nderekwa Nyali","phone":"0768394012","region":"Arusha","district":"Arusha District Council","ward":"Bangata","village":"Midawe","members":18,"quorum":80,"freq":"Monthly","fi":"NMB Bank","branch":"","loan":2000000,"loandate":"2025-01-10","totaldue":2360000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":12,"savings":66948,"memrepay":199080,"disbursed":72968,"repaid":0,"notes":""},{"id":"m2","date":"2025-02-14","present":17,"savings":89120,"memrepay":164740,"disbursed":201698,"repaid":196667,"notes":""},{"id":"m3","date":"2025-03-16","present":14,"savings":71018,"memrepay":157705,"disbursed":185764,"repaid":196667,"notes":""},{"id":"m4","date":"2025-04-15","present":17,"savings":149327,"memrepay":213012,"disbursed":71134,"repaid":196667,"notes":""},{"id":"m5","date":"2025-05-15","present":11,"savings":62095,"memrepay":162656,"disbursed":209760,"repaid":0,"notes":""}]},{"id":"C1003","cmgNumber":"C1003","name":"Nareto A Ilkisongo","chair":"Naoli Paul Mitamei","phone":"0765371920","region":"Arusha","district":"Arusha District Council","ward":"Ilkiding'a","village":"Ilkiding'A","members":25,"quorum":80,"freq":"Monthly","fi":"FINCA Tanzania","branch":"","loan":4500000,"loandate":"2025-01-10","totaldue":5310000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":20,"savings":145159,"memrepay":422255,"disbursed":69148,"repaid":442500,"notes":""},{"id":"m2","date":"2025-02-14","present":18,"savings":148978,"memrepay":405966,"disbursed":198847,"repaid":0,"notes":""},{"id":"m3","date":"2025-03-16","present":21,"savings":56026,"memrepay":368115,"disbursed":138893,"repaid":442500,"notes":""},{"id":"m4","date":"2025-04-15","present":22,"savings":75124,"memrepay":449413,"disbursed":188093,"repaid":442500,"notes":""},{"id":"m5","date":"2025-05-15","present":20,"savings":115734,"memrepay":366127,"disbursed":94408,"repaid":442500,"notes":""},{"id":"m6","date":"2025-06-14","present":18,"savings":85178,"memrepay":447969,"disbursed":263056,"repaid":0,"notes":""},{"id":"m7","date":"2025-07-14","present":17,"savings":137315,"memrepay":460838,"disbursed":0,"repaid":0,"notes":""},{"id":"m8","date":"2025-08-13","present":23,"savings":106379,"memrepay":471711,"disbursed":0,"repaid":442500,"notes":""},{"id":"m9","date":"2025-09-12","present":24,"savings":63368,"memrepay":485095,"disbursed":0,"repaid":442500,"notes":""}]},{"id":"C1004","cmgNumber":"C1004","name":"Riziki Centre","chair":"Lightness Japheth Mollel","phone":"0765602671","region":"Arusha","district":"Arusha District Council","ward":"Kisongo","village":"Engorora","members":20,"quorum":80,"freq":"Monthly","fi":"CRDB Bank","branch":"","loan":2500000,"loandate":"2025-01-10","totaldue":2950000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":18,"savings":74401,"memrepay":214294,"disbursed":252799,"repaid":245833,"notes":""},{"id":"m2","date":"2025-02-14","present":17,"savings":112942,"memrepay":248954,"disbursed":164734,"repaid":245833,"notes":""},{"id":"m3","date":"2025-03-16","present":20,"savings":116378,"memrepay":197225,"disbursed":184857,"repaid":245833,"notes":""},{"id":"m4","date":"2025-04-15","present":15,"savings":106108,"memrepay":256433,"disbursed":71514,"repaid":0,"notes":""},{"id":"m5","date":"2025-05-15","present":14,"savings":104614,"memrepay":260583,"disbursed":91691,"repaid":0,"notes":""},{"id":"m6","date":"2025-06-14","present":19,"savings":100359,"memrepay":261649,"disbursed":15253,"repaid":245833,"notes":""}]},{"id":"C1005","cmgNumber":"C1005","name":"Malezi Kambo Kishore","chair":"Jane Filemon Mchau","phone":"0747328483","region":"Arusha","district":"Arusha District Council","ward":"Olturumet","village":"Seuri","members":30,"quorum":80,"freq":"Monthly","fi":"Letshego Tanzania","branch":"","loan":5000000,"loandate":"2025-01-10","totaldue":5900000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":23,"savings":95803,"memrepay":525834,"disbursed":166257,"repaid":0,"notes":""},{"id":"m2","date":"2025-02-14","present":30,"savings":88392,"memrepay":453543,"disbursed":241416,"repaid":491667,"notes":""},{"id":"m3","date":"2025-03-16","present":21,"savings":97771,"memrepay":474161,"disbursed":66767,"repaid":0,"notes":""},{"id":"m4","date":"2025-04-15","present":19,"savings":82039,"memrepay":458509,"disbursed":221896,"repaid":0,"notes":""},{"id":"m5","date":"2025-05-15","present":26,"savings":116195,"memrepay":453231,"disbursed":16779,"repaid":491667,"notes":""},{"id":"m6","date":"2025-06-14","present":27,"savings":92557,"memrepay":437928,"disbursed":284911,"repaid":491667,"notes":""},{"id":"m7","date":"2025-07-14","present":26,"savings":138595,"memrepay":462627,"disbursed":0,"repaid":491667,"notes":""}]},{"id":"C1006","cmgNumber":"C1006","name":"Kijota Yes","chair":"Mariamu Selemani Senge","phone":"0719954672","region":"Singida","district":"Singida District Council","ward":"Kijota","village":"Nduu","members":24,"quorum":80,"freq":"Monthly","fi":"NMB Bank","branch":"","loan":3000000,"loandate":"2025-01-10","totaldue":3540000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":22,"savings":124368,"memrepay":280718,"disbursed":171194,"repaid":295000,"notes":""},{"id":"m2","date":"2025-02-14","present":16,"savings":121923,"memrepay":240714,"disbursed":97385,"repaid":0,"notes":""},{"id":"m3","date":"2025-03-16","present":24,"savings":142487,"memrepay":298350,"disbursed":294825,"repaid":295000,"notes":""},{"id":"m4","date":"2025-04-15","present":21,"savings":54605,"memrepay":253131,"disbursed":91155,"repaid":295000,"notes":""}]},{"id":"C1007","cmgNumber":"C1007","name":"Mkombozi","chair":"Yohana Majengo Mungwe","phone":"0743585171","region":"Singida","district":"Singida District Council","ward":"Maghojoa","village":"Ghata","members":19,"quorum":80,"freq":"Monthly","fi":"PASS Trust","branch":"","loan":4000000,"loandate":"2025-01-10","totaldue":4720000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":16,"savings":84048,"memrepay":329958,"disbursed":223047,"repaid":393333,"notes":""},{"id":"m2","date":"2025-02-14","present":15,"savings":67534,"memrepay":336007,"disbursed":97065,"repaid":393333,"notes":""},{"id":"m3","date":"2025-03-16","present":19,"savings":70048,"memrepay":368428,"disbursed":110184,"repaid":393333,"notes":""},{"id":"m4","date":"2025-04-15","present":14,"savings":120322,"memrepay":404990,"disbursed":188179,"repaid":0,"notes":""},{"id":"m5","date":"2025-05-15","present":16,"savings":112551,"memrepay":389727,"disbursed":222521,"repaid":393333,"notes":""},{"id":"m6","date":"2025-06-14","present":16,"savings":141431,"memrepay":394151,"disbursed":30093,"repaid":393333,"notes":""},{"id":"m7","date":"2025-07-14","present":17,"savings":74528,"memrepay":328011,"disbursed":0,"repaid":393333,"notes":""},{"id":"m8","date":"2025-08-13","present":18,"savings":125127,"memrepay":324607,"disbursed":0,"repaid":393333,"notes":""},{"id":"m9","date":"2025-09-12","present":15,"savings":84523,"memrepay":374414,"disbursed":0,"repaid":393333,"notes":""},{"id":"m10","date":"2025-10-12","present":13,"savings":145248,"memrepay":320759,"disbursed":0,"repaid":0,"notes":""}]},{"id":"C1008","cmgNumber":"C1008","name":"Baraka","chair":"Mwanaidi Shabani Kilongo","phone":"0759344494","region":"Singida","district":"Singida District Council","ward":"Ilongero","village":"Ilongero","members":27,"quorum":80,"freq":"Monthly","fi":"FINCA Tanzania","branch":"","loan":2000000,"loandate":"2025-01-10","totaldue":2360000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":25,"savings":144120,"memrepay":203722,"disbursed":44206,"repaid":196667,"notes":""},{"id":"m2","date":"2025-02-14","present":19,"savings":133494,"memrepay":166454,"disbursed":223059,"repaid":0,"notes":""},{"id":"m3","date":"2025-03-16","present":21,"savings":64814,"memrepay":209109,"disbursed":201698,"repaid":196667,"notes":""}]},{"id":"C1009","cmgNumber":"C1009","name":"Jipemoyo","chair":"Fatuma Athumani Mwanja","phone":"0687727780","region":"Singida","district":"Singida District Council","ward":"Kinyagigi","village":"Kihunadi","members":21,"quorum":80,"freq":"Monthly","fi":"Letshego Tanzania","branch":"","loan":3500000,"loandate":"2025-01-10","totaldue":4130000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":14,"savings":149525,"memrepay":319385,"disbursed":70501,"repaid":0,"notes":""},{"id":"m2","date":"2025-02-14","present":18,"savings":123739,"memrepay":335958,"disbursed":66246,"repaid":344167,"notes":""},{"id":"m3","date":"2025-03-16","present":20,"savings":59002,"memrepay":360274,"disbursed":257169,"repaid":344167,"notes":""},{"id":"m4","date":"2025-04-15","present":18,"savings":126833,"memrepay":375494,"disbursed":63734,"repaid":344167,"notes":""},{"id":"m5","date":"2025-05-15","present":21,"savings":130612,"memrepay":293498,"disbursed":108151,"repaid":344167,"notes":""},{"id":"m6","date":"2025-06-14","present":16,"savings":61625,"memrepay":344729,"disbursed":232934,"repaid":344167,"notes":""}]},{"id":"C1010","cmgNumber":"C1010","name":"Mpakani _ Kibaoni","chair":"Zaina Ramadhani Ngura","phone":"0745459063","region":"Singida","district":"Singida District Council","ward":"Mudida","village":"Kibaoni","members":23,"quorum":80,"freq":"Monthly","fi":"CRDB Bank","branch":"","loan":2800000,"loandate":"2025-01-10","totaldue":3304000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":17,"savings":66439,"memrepay":245552,"disbursed":96683,"repaid":0,"notes":""},{"id":"m2","date":"2025-02-14","present":17,"savings":131596,"memrepay":220357,"disbursed":14861,"repaid":0,"notes":""},{"id":"m3","date":"2025-03-16","present":18,"savings":90826,"memrepay":243837,"disbursed":288423,"repaid":275333,"notes":""},{"id":"m4","date":"2025-04-15","present":14,"savings":122490,"memrepay":293317,"disbursed":225829,"repaid":0,"notes":""},{"id":"m5","date":"2025-05-15","present":15,"savings":134996,"memrepay":249838,"disbursed":43173,"repaid":0,"notes":""},{"id":"m6","date":"2025-06-14","present":21,"savings":67289,"memrepay":228106,"disbursed":252266,"repaid":275333,"notes":""},{"id":"m7","date":"2025-07-14","present":21,"savings":148216,"memrepay":238511,"disbursed":0,"repaid":275333,"notes":""},{"id":"m8","date":"2025-08-13","present":15,"savings":141866,"memrepay":290440,"disbursed":0,"repaid":0,"notes":""}]},{"id":"C1011","cmgNumber":"C1011","name":"Tumaini Group","chair":"Mariamu Ally Mwita","phone":"0799827505","region":"Arusha","district":"Arusha District Council","ward":"Kimnyak","village":"Kimnyaki","members":21,"quorum":80,"freq":"Monthly","fi":"VisionFund Tanzania","branch":"","loan":0,"loandate":"","totaldue":0,"deadline":"","meetings":[]},{"id":"C1012","cmgNumber":"C1012","name":"Mwangaza Savings","chair":"Musa Hamisi Chacha","phone":"0783973006","region":"Arusha","district":"Arusha District Council","ward":"Sokon II","village":"Ngiresi","members":16,"quorum":80,"freq":"Monthly","fi":"AccessBank Tanzania","branch":"","loan":2300000,"loandate":"","totaldue":2737000,"deadline":"2026-10-31","meetings":[]},{"id":"C1013","cmgNumber":"C1013","name":"Pamoja Nguvu","chair":"Upendo Shabani Mwenda","phone":"0749950438","region":"Arusha","district":"Arusha District Council","ward":"Oloirien","village":"Olorieni","members":25,"quorum":80,"freq":"Monthly","fi":"VisionFund Tanzania","branch":"","loan":4600000,"loandate":"2025-01-10","totaldue":5382000,"deadline":"2026-10-31","meetings":[]},{"id":"C1014","cmgNumber":"C1014","name":"Imani Women","chair":"Godfrey Urasa Urasa","phone":"0762497396","region":"Arusha","district":"Arusha District Council","ward":"Olturoto","village":"Osunyai","members":23,"quorum":80,"freq":"Monthly","fi":"AccessBank Tanzania","branch":"","loan":2900000,"loandate":"2025-01-10","totaldue":3364000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":13,"savings":117909,"memrepay":255764,"disbursed":161463,"repaid":156439,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":17,"savings":149853,"memrepay":154409,"disbursed":233745,"repaid":160523,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":25,"savings":85118,"memrepay":445392,"disbursed":21548,"repaid":164472,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m4","date":"2025-04-15","present":14,"savings":113667,"memrepay":234673,"disbursed":9905,"repaid":157189,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":12,"savings":146916,"memrepay":479849,"disbursed":177755,"repaid":162674,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":21,"savings":114083,"memrepay":188248,"disbursed":94370,"repaid":158239,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m7","date":"2025-07-15","present":17,"savings":143510,"memrepay":282796,"disbursed":528,"repaid":160620,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m8","date":"2025-08-15","present":19,"savings":146492,"memrepay":429064,"disbursed":156362,"repaid":162180,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m9","date":"2025-09-15","present":20,"savings":89738,"memrepay":341577,"disbursed":83176,"repaid":164451,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":16,"savings":141969,"memrepay":464023,"disbursed":44023,"repaid":155452,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m11","date":"2025-11-15","present":22,"savings":107259,"memrepay":377504,"disbursed":195953,"repaid":163846,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m12","date":"2025-12-15","present":13,"savings":81479,"memrepay":463581,"disbursed":242264,"repaid":161487,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":13,"savings":131329,"memrepay":351442,"disbursed":52577,"repaid":158332,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m14","date":"2026-02-15","present":13,"savings":153038,"memrepay":342535,"disbursed":94638,"repaid":157979,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m15","date":"2026-03-15","present":20,"savings":78585,"memrepay":154004,"disbursed":0,"repaid":164453,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m16","date":"2026-04-15","present":20,"savings":86151,"memrepay":256189,"disbursed":0,"repaid":159271,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m17","date":"2026-05-15","present":15,"savings":141874,"memrepay":259814,"disbursed":0,"repaid":163611,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]}]},{"id":"C1015","cmgNumber":"C1015","name":"Tujitegemee Group","chair":"Athumani Mwita Kimaro","phone":"0754406363","region":"Arusha","district":"Arusha District Council","ward":"Laroi","village":"Enjoro","members":29,"quorum":80,"freq":"Monthly","fi":"CRDB Bank","branch":"","loan":4400000,"loandate":"2025-01-10","totaldue":5016000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":18,"savings":104437,"memrepay":214957,"disbursed":224510,"repaid":236477,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":22,"savings":66110,"memrepay":222019,"disbursed":246159,"repaid":243488,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":22,"savings":90735,"memrepay":152477,"disbursed":77224,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m4","date":"2025-04-15","present":25,"savings":127117,"memrepay":312477,"disbursed":163465,"repaid":240850,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":26,"savings":151589,"memrepay":454106,"disbursed":172829,"repaid":238883,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":26,"savings":82294,"memrepay":430530,"disbursed":223957,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m7","date":"2025-07-15","present":13,"savings":132290,"memrepay":216894,"disbursed":176632,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m8","date":"2025-08-15","present":14,"savings":137454,"memrepay":279767,"disbursed":132525,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m9","date":"2025-09-15","present":15,"savings":122554,"memrepay":366331,"disbursed":64320,"repaid":240623,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":22,"savings":120513,"memrepay":383775,"disbursed":44585,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m11","date":"2025-11-15","present":21,"savings":75493,"memrepay":233372,"disbursed":237654,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m12","date":"2025-12-15","present":26,"savings":78601,"memrepay":289472,"disbursed":7079,"repaid":242774,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":13,"savings":143725,"memrepay":186526,"disbursed":200033,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m14","date":"2026-02-15","present":15,"savings":64495,"memrepay":239868,"disbursed":8005,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m15","date":"2026-03-15","present":14,"savings":102317,"memrepay":418738,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m16","date":"2026-04-15","present":18,"savings":94234,"memrepay":437050,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m17","date":"2026-05-15","present":23,"savings":79013,"memrepay":153751,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]}]},{"id":"C1016","cmgNumber":"C1016","name":"Maendeleo Ya Wanawake","chair":"Khalfan Kilango Mrema","phone":"0724128552","region":"Arusha","district":"Arumeru District Council","ward":"Usa River","village":"Usa River","members":23,"quorum":80,"freq":"Monthly","fi":"Letshego Tanzania","branch":"","loan":0,"loandate":"","totaldue":0,"deadline":"","meetings":[]},{"id":"C1017","cmgNumber":"C1017","name":"Umoja Wetu","chair":"Baraka Mushi Shirima","phone":"0779806655","region":"Arusha","district":"Arumeru District Council","ward":"Tengeru","village":"Tengeru","members":31,"quorum":80,"freq":"Monthly","fi":"PASS Trust","branch":"","loan":4800000,"loandate":"","totaldue":5856000,"deadline":"2026-10-31","meetings":[]},{"id":"C1018","cmgNumber":"C1018","name":"Hekima Group","chair":"Fatuma Shirima Mhina","phone":"0756970856","region":"Arusha","district":"Arumeru District Council","ward":"Kikwe","village":"Kikwe","members":32,"quorum":80,"freq":"Monthly","fi":"AccessBank Tanzania","branch":"","loan":3800000,"loandate":"2025-01-10","totaldue":4446000,"deadline":"2026-10-31","meetings":[]},{"id":"C1019","cmgNumber":"C1019","name":"Furaha Savings","chair":"Joseph Shabani Kisanga","phone":"0729873294","region":"Arusha","district":"Arumeru District Council","ward":"Nduruma","village":"Nduruma","members":25,"quorum":80,"freq":"Monthly","fi":"VisionFund Tanzania","branch":"","loan":1900000,"loandate":"2025-01-10","totaldue":2242000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":12,"savings":135144,"memrepay":232458,"disbursed":348,"repaid":104553,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":22,"savings":80869,"memrepay":444640,"disbursed":104857,"repaid":108609,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":20,"savings":118410,"memrepay":371242,"disbursed":193890,"repaid":103112,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m4","date":"2025-04-15","present":15,"savings":106099,"memrepay":305869,"disbursed":150279,"repaid":105779,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":18,"savings":59628,"memrepay":434445,"disbursed":42631,"repaid":105162,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":14,"savings":85259,"memrepay":321358,"disbursed":148988,"repaid":106275,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m7","date":"2025-07-15","present":15,"savings":147243,"memrepay":415213,"disbursed":26372,"repaid":109119,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m8","date":"2025-08-15","present":14,"savings":77221,"memrepay":410755,"disbursed":222717,"repaid":101895,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m9","date":"2025-09-15","present":26,"savings":84814,"memrepay":300364,"disbursed":150613,"repaid":104354,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":21,"savings":112840,"memrepay":421675,"disbursed":14554,"repaid":110305,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m11","date":"2025-11-15","present":25,"savings":150528,"memrepay":351844,"disbursed":114799,"repaid":111211,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m12","date":"2025-12-15","present":23,"savings":119022,"memrepay":347704,"disbursed":1007,"repaid":107187,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":18,"savings":131009,"memrepay":232166,"disbursed":230292,"repaid":103805,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m14","date":"2026-02-15","present":17,"savings":114457,"memrepay":399824,"disbursed":131680,"repaid":102315,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m15","date":"2026-03-15","present":22,"savings":64208,"memrepay":366354,"disbursed":0,"repaid":101849,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m16","date":"2026-04-15","present":21,"savings":102253,"memrepay":217023,"disbursed":0,"repaid":109887,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m17","date":"2026-05-15","present":21,"savings":140230,"memrepay":288105,"disbursed":0,"repaid":109427,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]}]},{"id":"C1020","cmgNumber":"C1020","name":"Nguvu Mpya","chair":"Zawadi Mhina Mrema","phone":"0736909508","region":"Arusha","district":"Arumeru District Council","ward":"Ngarenaro","village":"Ngarenaro","members":19,"quorum":80,"freq":"Monthly","fi":"PASS Trust","branch":"","loan":4100000,"loandate":"2025-01-10","totaldue":4838000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":16,"savings":112267,"memrepay":207384,"disbursed":91017,"repaid":232991,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":12,"savings":144782,"memrepay":180303,"disbursed":245283,"repaid":227255,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":22,"savings":140543,"memrepay":372090,"disbursed":64527,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m4","date":"2025-04-15","present":18,"savings":90729,"memrepay":337178,"disbursed":136107,"repaid":235104,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":14,"savings":86020,"memrepay":253155,"disbursed":112020,"repaid":232569,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":26,"savings":117643,"memrepay":351100,"disbursed":224283,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m7","date":"2025-07-15","present":14,"savings":93804,"memrepay":385460,"disbursed":156228,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m8","date":"2025-08-15","present":17,"savings":108771,"memrepay":341929,"disbursed":55660,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m9","date":"2025-09-15","present":12,"savings":62717,"memrepay":328485,"disbursed":1634,"repaid":234438,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":21,"savings":153575,"memrepay":366294,"disbursed":235052,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m11","date":"2025-11-15","present":20,"savings":158388,"memrepay":171001,"disbursed":76799,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m12","date":"2025-12-15","present":23,"savings":92093,"memrepay":204387,"disbursed":71313,"repaid":226174,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":16,"savings":117736,"memrepay":206207,"disbursed":118936,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m14","date":"2026-02-15","present":16,"savings":65127,"memrepay":374509,"disbursed":170084,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m15","date":"2026-03-15","present":23,"savings":105030,"memrepay":415473,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m16","date":"2026-04-15","present":15,"savings":83496,"memrepay":465473,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m17","date":"2026-05-15","present":19,"savings":80276,"memrepay":272616,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]}]},{"id":"C1021","cmgNumber":"C1021","name":"Mwelekeo Group","chair":"Pendo Sanga Minja","phone":"0733025815","region":"Singida","district":"Singida District Council","ward":"Mrama","village":"Mrama","members":30,"quorum":80,"freq":"Monthly","fi":"VisionFund Tanzania","branch":"","loan":0,"loandate":"","totaldue":0,"deadline":"","meetings":[]},{"id":"C1022","cmgNumber":"C1022","name":"Juhudi Group","chair":"Amina Sanga Chacha","phone":"0741627513","region":"Singida","district":"Singida District Council","ward":"Mtinko","village":"Malolo","members":28,"quorum":80,"freq":"Monthly","fi":"Letshego Tanzania","branch":"","loan":3800000,"loandate":"","totaldue":4484000,"deadline":"2026-10-31","meetings":[]},{"id":"C1023","cmgNumber":"C1023","name":"Bidii Savings","chair":"Godfrey Kilango Lema","phone":"0729631023","region":"Singida","district":"Singida District Council","ward":"Makuro","village":"Matumbo","members":21,"quorum":80,"freq":"Monthly","fi":"CRDB Bank","branch":"","loan":1700000,"loandate":"2025-01-10","totaldue":1972000,"deadline":"2026-10-31","meetings":[]},{"id":"C1024","cmgNumber":"C1024","name":"Amani Group","chair":"Joseph Mushi Msalame","phone":"0744430950","region":"Singida","district":"Singida District Council","ward":"Kinyeto","village":"Kinyeto","members":25,"quorum":80,"freq":"Monthly","fi":"AccessBank Tanzania","branch":"","loan":3300000,"loandate":"2025-01-10","totaldue":3927000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":12,"savings":126601,"memrepay":314474,"disbursed":82967,"repaid":183983,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":19,"savings":140691,"memrepay":236277,"disbursed":55622,"repaid":186189,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":23,"savings":94574,"memrepay":368787,"disbursed":228527,"repaid":189003,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m4","date":"2025-04-15","present":17,"savings":156982,"memrepay":375675,"disbursed":11314,"repaid":184509,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":15,"savings":77500,"memrepay":418100,"disbursed":85452,"repaid":191717,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":23,"savings":123972,"memrepay":288611,"disbursed":235218,"repaid":185769,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m7","date":"2025-07-15","present":14,"savings":120713,"memrepay":186021,"disbursed":90363,"repaid":190704,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m8","date":"2025-08-15","present":18,"savings":58443,"memrepay":491563,"disbursed":155817,"repaid":189027,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m9","date":"2025-09-15","present":15,"savings":139188,"memrepay":267928,"disbursed":157359,"repaid":187104,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":18,"savings":89456,"memrepay":234619,"disbursed":136451,"repaid":186467,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m11","date":"2025-11-15","present":17,"savings":147637,"memrepay":291656,"disbursed":17422,"repaid":186233,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m12","date":"2025-12-15","present":17,"savings":127829,"memrepay":483669,"disbursed":136268,"repaid":188704,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":19,"savings":133958,"memrepay":260132,"disbursed":36099,"repaid":187650,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m14","date":"2026-02-15","present":18,"savings":111417,"memrepay":249370,"disbursed":84601,"repaid":190153,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m15","date":"2026-03-15","present":14,"savings":132238,"memrepay":456859,"disbursed":0,"repaid":184620,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m16","date":"2026-04-15","present":13,"savings":74964,"memrepay":451224,"disbursed":0,"repaid":187211,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m17","date":"2026-05-15","present":26,"savings":158094,"memrepay":296028,"disbursed":0,"repaid":182074,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]}]},{"id":"C1025","cmgNumber":"C1025","name":"Kilimo Bora","chair":"Francis Mwita Chacha","phone":"0771658337","region":"Singida","district":"Singida District Council","ward":"Mwasauya","village":"Mwasauya","members":21,"quorum":80,"freq":"Monthly","fi":"FINCA Tanzania","branch":"","loan":5400000,"loandate":"2025-01-10","totaldue":6156000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":23,"savings":103690,"memrepay":156732,"disbursed":148806,"repaid":292856,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":18,"savings":148825,"memrepay":347900,"disbursed":146214,"repaid":291557,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":10,"savings":115494,"memrepay":378819,"disbursed":205634,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m4","date":"2025-04-15","present":18,"savings":95337,"memrepay":248509,"disbursed":185065,"repaid":294874,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":21,"savings":74310,"memrepay":295017,"disbursed":96698,"repaid":291592,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":17,"savings":158860,"memrepay":195461,"disbursed":213539,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m7","date":"2025-07-15","present":16,"savings":88163,"memrepay":440028,"disbursed":14448,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m8","date":"2025-08-15","present":10,"savings":76897,"memrepay":415170,"disbursed":149443,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m9","date":"2025-09-15","present":13,"savings":157562,"memrepay":221038,"disbursed":231996,"repaid":290624,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":25,"savings":119746,"memrepay":287482,"disbursed":174403,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m11","date":"2025-11-15","present":14,"savings":143783,"memrepay":351633,"disbursed":159297,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m12","date":"2025-12-15","present":17,"savings":153287,"memrepay":155908,"disbursed":140679,"repaid":292467,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":22,"savings":60733,"memrepay":235471,"disbursed":64455,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m14","date":"2026-02-15","present":20,"savings":151975,"memrepay":456700,"disbursed":136969,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m15","date":"2026-03-15","present":17,"savings":60593,"memrepay":313654,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m16","date":"2026-04-15","present":21,"savings":156692,"memrepay":282984,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m17","date":"2026-05-15","present":22,"savings":141044,"memrepay":451339,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]}]},{"id":"C1026","cmgNumber":"C1026","name":"Ushirika Wetu","chair":"Mariamu Shabani Lema","phone":"0785458141","region":"Singida","district":"Manyoni District Council","ward":"Manyoni","village":"Manyoni","members":32,"quorum":80,"freq":"Monthly","fi":"Letshego Tanzania","branch":"","loan":0,"loandate":"","totaldue":0,"deadline":"","meetings":[]},{"id":"C1027","cmgNumber":"C1027","name":"Fahari Women","chair":"Athumani Sanga Marwa","phone":"0791402423","region":"Singida","district":"Manyoni District Council","ward":"Issuna","village":"Issuna","members":17,"quorum":80,"freq":"Monthly","fi":"Tanzania Agricultural Development Bank (TADB)","branch":"","loan":2300000,"loandate":"","totaldue":2668000,"deadline":"2026-10-31","meetings":[]},{"id":"C1028","cmgNumber":"C1028","name":"Mapinduzi Group","chair":"Musa Shirima Mhina","phone":"0754607767","region":"Singida","district":"Manyoni District Council","ward":"Kintinku","village":"Kintinku","members":19,"quorum":80,"freq":"Monthly","fi":"AccessBank Tanzania","branch":"","loan":5000000,"loandate":"2025-01-10","totaldue":6050000,"deadline":"2026-10-31","meetings":[]},{"id":"C1029","cmgNumber":"C1029","name":"Ustawi Group","chair":"Athumani Ally Mhina","phone":"0797215934","region":"Singida","district":"Manyoni District Council","ward":"Matera","village":"Matera","members":16,"quorum":80,"freq":"Monthly","fi":"Letshego Tanzania","branch":"","loan":3200000,"loandate":"2025-01-10","totaldue":3680000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":26,"savings":102903,"memrepay":238569,"disbursed":54606,"repaid":173342,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":13,"savings":141350,"memrepay":155059,"disbursed":81397,"repaid":173319,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":18,"savings":125982,"memrepay":230666,"disbursed":74612,"repaid":175206,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m4","date":"2025-04-15","present":16,"savings":62860,"memrepay":246207,"disbursed":191062,"repaid":180041,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":22,"savings":101540,"memrepay":481004,"disbursed":219774,"repaid":173982,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":20,"savings":120345,"memrepay":251035,"disbursed":130530,"repaid":172933,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m7","date":"2025-07-15","present":15,"savings":56915,"memrepay":160218,"disbursed":172471,"repaid":170682,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m8","date":"2025-08-15","present":17,"savings":153560,"memrepay":196595,"disbursed":192759,"repaid":173468,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m9","date":"2025-09-15","present":18,"savings":105382,"memrepay":201937,"disbursed":203202,"repaid":176577,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":16,"savings":137296,"memrepay":494895,"disbursed":113636,"repaid":178976,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m11","date":"2025-11-15","present":15,"savings":81734,"memrepay":477251,"disbursed":58093,"repaid":179098,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m12","date":"2025-12-15","present":15,"savings":116592,"memrepay":216334,"disbursed":79270,"repaid":176764,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":27,"savings":85386,"memrepay":306594,"disbursed":234759,"repaid":173213,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m14","date":"2026-02-15","present":21,"savings":63786,"memrepay":433395,"disbursed":104375,"repaid":176033,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m15","date":"2026-03-15","present":17,"savings":70953,"memrepay":426326,"disbursed":0,"repaid":179103,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m16","date":"2026-04-15","present":16,"savings":73974,"memrepay":272478,"disbursed":0,"repaid":172148,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m17","date":"2026-05-15","present":15,"savings":69216,"memrepay":421453,"disbursed":0,"repaid":176076,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]}]},{"id":"C1030","cmgNumber":"C1030","name":"Maarifa Savings","chair":"Hassan Kilango Mwanga","phone":"0752330822","region":"Singida","district":"Manyoni District Council","ward":"Rungwa","village":"Rungwa","members":16,"quorum":80,"freq":"Monthly","fi":"CRDB Bank","branch":"","loan":5500000,"loandate":"2025-01-10","totaldue":6710000,"deadline":"2026-10-31","meetings":[{"id":"m1","date":"2025-01-15","present":20,"savings":60307,"memrepay":367252,"disbursed":4305,"repaid":315184,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m2","date":"2025-02-15","present":16,"savings":108793,"memrepay":279846,"disbursed":208277,"repaid":320550,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m3","date":"2025-03-15","present":14,"savings":64541,"memrepay":441395,"disbursed":60652,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m4","date":"2025-04-15","present":27,"savings":59788,"memrepay":475601,"disbursed":56393,"repaid":316712,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m5","date":"2025-05-15","present":25,"savings":75921,"memrepay":470153,"disbursed":199670,"repaid":316260,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m6","date":"2025-06-15","present":14,"savings":73554,"memrepay":318243,"disbursed":133565,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m7","date":"2025-07-15","present":20,"savings":116920,"memrepay":163283,"disbursed":188291,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m8","date":"2025-08-15","present":13,"savings":75570,"memrepay":431179,"disbursed":232103,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m9","date":"2025-09-15","present":19,"savings":69867,"memrepay":155200,"disbursed":77435,"repaid":320807,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m10","date":"2025-10-15","present":20,"savings":102972,"memrepay":291306,"disbursed":242261,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m11","date":"2025-11-15","present":19,"savings":152283,"memrepay":178636,"disbursed":140922,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m12","date":"2025-12-15","present":20,"savings":108648,"memrepay":369743,"disbursed":56854,"repaid":320397,"notes":"","remitChoice":"yes","remitType":"partial","amendments":[]},{"id":"m13","date":"2026-01-15","present":20,"savings":66708,"memrepay":419238,"disbursed":178171,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m14","date":"2026-02-15","present":19,"savings":146584,"memrepay":250318,"disbursed":249421,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m15","date":"2026-03-15","present":16,"savings":123349,"memrepay":389053,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m16","date":"2026-04-15","present":20,"savings":75424,"memrepay":401079,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]},{"id":"m17","date":"2026-05-15","present":12,"savings":74996,"memrepay":477314,"disbursed":0,"repaid":0,"notes":"","remitChoice":"no","remitType":null,"amendments":[]}]}]};
+
+// ── OFFICER REGISTERS (dummy — for prototype login validation) ──
+const LGA_OFFICERS = [
+  { id:'LGA001', name:'Baraka Omari Kimaro',   district:'Arusha District Council',   region:'Arusha'  },
+  { id:'LGA002', name:'Upendo Juma Msalame',   district:'Arumeru District Council',  region:'Arusha'  },
+  { id:'LGA003', name:'Rehema Said Nkya',      district:'Singida District Council',  region:'Singida' },
+  { id:'LGA004', name:'Hassan Ally Chacha',    district:'Manyoni District Council',  region:'Singida' },
+];
+const TAMISEMI_OFFICERS = [
+  { id:'TAM001', name:'Zawadi Rashidi Lema'  },
+  { id:'TAM002', name:'Francis Bakari Minja' },
+];
 const DB_KEY = 'pamoja_v5';
 let SESSION = null, selectedRole = null;
 
@@ -522,12 +588,19 @@ document.getElementById('confirm-reset-btn').addEventListener('click', function(
 
 // ── STEP INDICATOR ──
 function setStep(n){
-  [1,2].forEach(function(i){
+  var threeStep=(selectedRole==='lga'||selectedRole==='tamisemi');
+  var maxStep=threeStep?3:2;
+  // Show/hide step 3 indicator items
+  var si3=document.getElementById('si-3'), siL3=document.getElementById('si-line-3');
+  if(si3) si3.style.display=threeStep?'flex':'none';
+  if(siL3) siL3.style.display=threeStep?'flex':'none';
+  [1,2,3].forEach(function(i){
     var el=document.getElementById('si-'+i);
     if(el) el.className='step'+(i<n?' done':i===n?' active':'');
   });
   document.getElementById('login-step1').style.display=n===1?'block':'none';
   document.getElementById('login-step2').style.display=n===2?'block':'none';
+  document.getElementById('login-step3').style.display=n===3?'block':'none';
 }
 
 // ── ROLE CARDS ──
@@ -554,55 +627,73 @@ document.getElementById('step1-continue').addEventListener('click', function(){
     ['auto-name','auto-chair','auto-region','auto-district','auto-ward','auto-village'].forEach(function(id){ document.getElementById(id).value=''; });
   }
   if(selectedRole==='lga'){
-    var lr=document.getElementById('lga-region');
-    lr.innerHTML='<option value="">&#8212; Select &#8212;</option>';
-    Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; lr.appendChild(o); });
-    var ld=document.getElementById('lga-district');
-    lr.onchange=function(){
-      ld.innerHTML='<option value="">&#8212; Select &#8212;</option>';
-      if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; ld.appendChild(o); });
-      populateLgaWards();
-    };
-    ld.onchange=function(){ populateLgaWards(); };
-    populateLgaWards();
+    // Clear previous lookup
+    document.getElementById('inp-lgaid').value='';
+    document.getElementById('lga-lookup-result').style.display='none';
+    document.getElementById('lga-auto-name').value='';
+    document.getElementById('lga-auto-district').value='';
+    _lgaOfficer=null;
   }
   if(selectedRole==='tamisemi'){
-    var tr2=document.getElementById('tamisemi-region');
-    tr2.innerHTML='<option value="">&#8212; All regions &#8212;</option>';
-    Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; tr2.appendChild(o); });
-    var td2=document.getElementById('tamisemi-district');
-    tr2.onchange=function(){
-      td2.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
-      if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; td2.appendChild(o); });
-    };
-    td2.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+    document.getElementById('inp-tamid').value='';
+    document.getElementById('tam-lookup-result').style.display='none';
+    document.getElementById('tam-auto-name').value='';
+    _tamOfficer=null;
   }
   setStep(2);
 });
 
-// Populate LGA ward dropdown with only wards that have mock CMG data
+// Populate LGA ward scope dropdown (called when entering step 3 for LGA)
 function populateLgaWards(){
   var ws=document.getElementById('lga-ward-sel');
-  var region=document.getElementById('lga-region').value;
-  var district=document.getElementById('lga-district').value;
+  var district=_lgaOfficer?_lgaOfficer.district:'';
   var groups=db().groups||[];
-  // Filter groups by selected region/district if chosen, else all
-  var relevant=groups.filter(function(g){
-    if(region&&g.region!==region) return false;
-    if(district&&g.district!==district) return false;
-    return true;
-  });
-  // Unique wards
+  var relevant=groups.filter(function(g){ return !district||g.district===district; });
   var wards=[];
   relevant.forEach(function(g){ if(g.ward&&wards.indexOf(g.ward)===-1) wards.push(g.ward); });
   wards.sort();
-  ws.innerHTML='<option value="">&#8212; Select ward &#8212;</option>';
+  ws.innerHTML='<option value="">&#8212; All wards in district &#8212;</option>';
   wards.forEach(function(w){ var o=document.createElement('option'); o.value=o.textContent=w; ws.appendChild(o); });
 }
 
 // ── CMG ID LOOKUP ──
 var H = MOCK_SEED.hierarchy;
 var _lookedUpCmgId = null;
+var _lgaOfficer = null;
+var _tamOfficer = null;
+
+// LGA officer lookup
+function doLgaLookup(){
+  var raw=document.getElementById('inp-lgaid').value.trim().toUpperCase();
+  var err=document.getElementById('s2-err'); err.style.display='none';
+  _lgaOfficer=null;
+  document.getElementById('lga-lookup-result').style.display='none';
+  if(!raw){ err.textContent='Please enter a valid Officer ID.'; err.style.display='block'; return; }
+  var o=LGA_OFFICERS.find(function(x){ return x.id===raw; });
+  if(!o){ err.textContent='Please enter a valid Officer ID.'; err.style.display='block'; return; }
+  _lgaOfficer=o;
+  document.getElementById('lga-auto-name').value=o.name;
+  document.getElementById('lga-auto-district').value=o.district;
+  document.getElementById('lga-lookup-result').style.display='block';
+}
+document.getElementById('btn-lga-lookup').addEventListener('click', doLgaLookup);
+document.getElementById('inp-lgaid').addEventListener('keydown', function(e){ if(e.key==='Enter') doLgaLookup(); });
+
+// TAMISEMI officer lookup
+function doTamLookup(){
+  var raw=document.getElementById('inp-tamid').value.trim().toUpperCase();
+  var err=document.getElementById('s2-err'); err.style.display='none';
+  _tamOfficer=null;
+  document.getElementById('tam-lookup-result').style.display='none';
+  if(!raw){ err.textContent='Please enter a valid Officer ID.'; err.style.display='block'; return; }
+  var o=TAMISEMI_OFFICERS.find(function(x){ return x.id===raw; });
+  if(!o){ err.textContent='Please enter a valid Officer ID.'; err.style.display='block'; return; }
+  _tamOfficer=o;
+  document.getElementById('tam-auto-name').value=o.name;
+  document.getElementById('tam-lookup-result').style.display='block';
+}
+document.getElementById('btn-tam-lookup').addEventListener('click', doTamLookup);
+document.getElementById('inp-tamid').addEventListener('keydown', function(e){ if(e.key==='Enter') doTamLookup(); });
 
 function doCmgLookup(){
   var raw=document.getElementById('inp-cmgid').value.trim().toUpperCase();
@@ -641,13 +732,50 @@ document.getElementById('step2-continue').addEventListener('click', function(){
   var err=document.getElementById('s2-err'); err.style.display='none';
   if(selectedRole==='chair'){
     if(!_lookedUpCmgId){ err.textContent='Please enter a valid CMG ID.'; err.style.display='block'; return; }
+    buildSession();
   } else if(selectedRole==='lga'){
-    if(!document.getElementById('lga-ward-sel').value){ err.textContent='Please select a ward.'; err.style.display='block'; return; }
+    if(!_lgaOfficer){ err.textContent='Please enter a valid Officer ID.'; err.style.display='block'; return; }
+    // Go to step 3: scope selection
+    document.getElementById('lga-scope').style.display='block';
+    document.getElementById('tamisemi-scope').style.display='none';
+    document.getElementById('lga-scope-title').textContent=_lgaOfficer.district+' — Select scope';
+    populateLgaWards();
+    document.getElementById('s3-err').style.display='none';
+    setStep(3);
   } else if(selectedRole==='tamisemi'){
-    // region/district both optional — TAMISEMI can view nationally
+    if(!_tamOfficer){ err.textContent='Please enter a valid Officer ID.'; err.style.display='block'; return; }
+    // Go to step 3: scope selection
+    document.getElementById('tamisemi-scope').style.display='block';
+    document.getElementById('lga-scope').style.display='none';
+    // Populate region dropdown
+    var tr=document.getElementById('tamisemi-region');
+    tr.innerHTML='<option value="">&#8212; All regions &#8212;</option>';
+    Object.keys(H).sort().forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; tr.appendChild(o); });
+    var td=document.getElementById('tamisemi-district');
+    td.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+    td.disabled=true; td.style.opacity='0.5';
+    tr.onchange=function(){
+      if(!this.value){
+        td.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+        td.disabled=true; td.style.opacity='0.5';
+      } else {
+        td.disabled=false; td.style.opacity='1';
+        td.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+        if(H[this.value]) Object.keys(H[this.value]).sort().forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; td.appendChild(o); });
+      }
+    };
+    document.getElementById('s3-err').style.display='none';
+    setStep(3);
   } else if(selectedRole==='fi'){
     if(!document.getElementById('fi-institution').value){ err.textContent='Please select your institution.'; err.style.display='block'; return; }
+    buildSession();
   }
+});
+
+document.getElementById('step3-back').addEventListener('click', function(){ setStep(2); });
+document.getElementById('step3-continue').addEventListener('click', function(){
+  var err=document.getElementById('s3-err'); err.style.display='none';
+  // No mandatory field for either — both support "All" selections
   buildSession();
 });
 
@@ -659,13 +787,16 @@ function buildSession(){
       ward:document.getElementById('auto-ward').value,
       village:document.getElementById('auto-village').value};
   } else if(selectedRole==='lga'){
-    SESSION={role:'lga',region:document.getElementById('lga-region').value,
-      district:document.getElementById('lga-district').value,
+    SESSION={role:'lga',
+      officerName:_lgaOfficer?_lgaOfficer.name:'',
+      region:_lgaOfficer?_lgaOfficer.region:'',
+      district:_lgaOfficer?_lgaOfficer.district:'',
       ward:document.getElementById('lga-ward-sel').value};
   } else if(selectedRole==='tamisemi'){
     SESSION={role:'tamisemi',
+      officerName:_tamOfficer?_tamOfficer.name:'',
       region:document.getElementById('tamisemi-region').value,
-      district:document.getElementById('tamisemi-district').value};
+      district:document.getElementById('tamisemi-district')?document.getElementById('tamisemi-district').value:''};
   } else {
     SESSION={role:'fi',fi:document.getElementById('fi-institution').value};
   }
@@ -674,9 +805,9 @@ function buildSession(){
   var lbl={chair:'Chairperson',lga:'LGA Officer',fi:'FI Lender',tamisemi:'TAMISEMI Officer'};
   var sub=lbl[SESSION.role]||SESSION.role;
   if(SESSION.role==='chair') sub+=' · '+SESSION.cmgNumber;
-  if(SESSION.role==='lga') sub+=' · '+SESSION.ward;
+  if(SESSION.role==='lga') sub+=' · '+(SESSION.ward||SESSION.district||'All');
   if(SESSION.role==='fi') sub+=' · '+SESSION.fi;
-  if(SESSION.role==='tamisemi') sub+=' · '+(SESSION.region||'All Regions');
+  if(SESSION.role==='tamisemi') sub+=' · '+(SESSION.region||(SESSION.district?'':'')||'All Regions');
   document.getElementById('topbar-label').textContent=sub;
   if(SESSION.role==='chair') enterChair();
   else if(SESSION.role==='tamisemi') enterTamisemi();
@@ -684,7 +815,7 @@ function buildSession(){
 }
 
 document.getElementById('logout-btn').addEventListener('click', function(){
-  SESSION=null; selectedRole=null; _lookedUpCmgId=null;
+  SESSION=null; selectedRole=null; _lookedUpCmgId=null; _lgaOfficer=null; _tamOfficer=null;
   document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('selected'); });
   document.getElementById('app-shell').style.display='none';
   document.getElementById('login-screen').style.display='flex';
@@ -1413,45 +1544,42 @@ document.getElementById('obs-back-btn').addEventListener('click', function(){
   document.getElementById('obs-detail-view').style.display='none';
 });
 
-// ── CHANGE SELECTION (return to login step 2, role stays selected) ──
+// ── CHANGE SELECTION ──
+// For LGA/TAMISEMI: go to step 3 (scope) so officer doesn't have to re-verify
+// For Chair/FI: go to step 2 (identity)
 function goBackToIdentity(){
   SESSION=null;
   document.getElementById('app-shell').style.display='none';
   document.getElementById('login-screen').style.display='flex';
-  // Re-show step 2 directly — role card stays selected
-  ['chair-identity','lga-identity','fi-identity','tamisemi-identity'].forEach(function(id){
-    document.getElementById(id).style.display='none';
-  });
-  if(selectedRole){
-    document.getElementById(selectedRole+'-identity').style.display='block';
-    // Re-populate TAMISEMI dropdowns if returning there
-    if(selectedRole==='tamisemi'){
-      var tr2=document.getElementById('tamisemi-region');
-      tr2.innerHTML='<option value="">&#8212; All regions &#8212;</option>';
-      Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; tr2.appendChild(o); });
-      var td2=document.getElementById('tamisemi-district');
-      td2.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
-      tr2.onchange=function(){
-        td2.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
-        if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; td2.appendChild(o); });
-      };
-    }
-    if(selectedRole==='lga'){
-      var lr=document.getElementById('lga-region');
-      lr.innerHTML='<option value="">&#8212; Select &#8212;</option>';
-      Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; lr.appendChild(o); });
-      var ld=document.getElementById('lga-district');
-      lr.onchange=function(){
-        ld.innerHTML='<option value="">&#8212; Select &#8212;</option>';
-        if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; ld.appendChild(o); });
-        populateLgaWards();
-      };
-      ld.onchange=function(){ populateLgaWards(); };
-      populateLgaWards();
-    }
-  }
   document.getElementById('s2-err').style.display='none';
-  setStep(2);
+  document.getElementById('s3-err').style.display='none';
+  if(selectedRole==='lga'&&_lgaOfficer){
+    // Already verified — go straight to scope step
+    document.getElementById('lga-scope').style.display='block';
+    document.getElementById('tamisemi-scope').style.display='none';
+    document.getElementById('lga-scope-title').textContent=_lgaOfficer.district+' — Select scope';
+    populateLgaWards();
+    setStep(3);
+  } else if(selectedRole==='tamisemi'&&_tamOfficer){
+    document.getElementById('tamisemi-scope').style.display='block';
+    document.getElementById('lga-scope').style.display='none';
+    var tr=document.getElementById('tamisemi-region');
+    tr.innerHTML='<option value="">&#8212; All regions &#8212;</option>';
+    Object.keys(H).sort().forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; tr.appendChild(o); });
+    var td=document.getElementById('tamisemi-district');
+    td.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+    td.disabled=true; td.style.opacity='0.5';
+    tr.onchange=function(){
+      if(!this.value){ td.innerHTML='<option value="">&#8212; All districts &#8212;</option>'; td.disabled=true; td.style.opacity='0.5'; }
+      else { td.disabled=false; td.style.opacity='1'; td.innerHTML='<option value="">&#8212; All districts &#8212;</option>'; if(H[this.value]) Object.keys(H[this.value]).sort().forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; td.appendChild(o); }); }
+    };
+    setStep(3);
+  } else {
+    // Chair or FI — go back to step 2 identity
+    ['chair-identity','lga-identity','fi-identity','tamisemi-identity'].forEach(function(id){ document.getElementById(id).style.display='none'; });
+    if(selectedRole) document.getElementById(selectedRole+'-identity').style.display='block';
+    setStep(2);
+  }
 }
 document.getElementById('obs-change-btn').addEventListener('click', goBackToIdentity);
 document.getElementById('tam-change-btn').addEventListener('click', goBackToIdentity);
