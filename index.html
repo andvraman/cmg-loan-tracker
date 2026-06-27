@@ -408,9 +408,12 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
   </div>
 
   <div id="screen-observer" class="screen">
-    <div style="margin-bottom:.75rem">
-      <div style="font-size:17px;font-weight:700;color:var(--green-dark)" id="obs-title"></div>
-      <div style="font-size:13px;color:var(--muted)" id="obs-sub"></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;gap:12px">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--green-dark)" id="obs-title"></div>
+        <div style="font-size:13px;color:var(--muted)" id="obs-sub"></div>
+      </div>
+      <button class="btn btn-sm" id="obs-change-btn" style="flex-shrink:0">&#8592; Change selection</button>
     </div>
     <div id="obs-list-view">
       <div id="obs-summary" class="stat-grid" style="margin-bottom:1rem"></div>
@@ -439,9 +442,12 @@ body{font-family:system-ui,sans-serif;font-size:15px;color:var(--text);backgroun
 
   <!-- ── TAMISEMI SCREEN ── -->
   <div id="screen-tamisemi" class="screen">
-    <div style="margin-bottom:.75rem">
-      <div style="font-size:17px;font-weight:700;color:var(--green-dark)" id="tam-title"></div>
-      <div style="font-size:13px;color:var(--muted)" id="tam-sub"></div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;gap:12px">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--green-dark)" id="tam-title"></div>
+        <div style="font-size:13px;color:var(--muted)" id="tam-sub"></div>
+      </div>
+      <button class="btn btn-sm" id="tam-change-btn" style="flex-shrink:0">&#8592; Change selection</button>
     </div>
     <div id="tam-content"></div>
   </div>
@@ -1255,6 +1261,8 @@ var STATUS_CFG={
   delinquent:    {label:'Delinquent',           bg:'#fee2e2',color:'#b91c1c',border:'#fecaca'}
 };
 var STATUS_ORDER=['applied','approved','disbursed','active-ok','active-behind','completed','overdue-dpd','delinquent'];
+// Statuses shown in CMG-level table columns and row badges (pre-loan pipeline statuses appear only in the top summary)
+var STATUS_ORDER_TABLE=['active-ok','active-behind','completed','overdue-dpd','delinquent'];
 
 // statusBadge: for overdue-dpd, appends the live DPD count to the label.
 // Pass the group object (g) to get the dynamic label; or pass null for a generic badge.
@@ -1405,6 +1413,49 @@ document.getElementById('obs-back-btn').addEventListener('click', function(){
   document.getElementById('obs-detail-view').style.display='none';
 });
 
+// ── CHANGE SELECTION (return to login step 2, role stays selected) ──
+function goBackToIdentity(){
+  SESSION=null;
+  document.getElementById('app-shell').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  // Re-show step 2 directly — role card stays selected
+  ['chair-identity','lga-identity','fi-identity','tamisemi-identity'].forEach(function(id){
+    document.getElementById(id).style.display='none';
+  });
+  if(selectedRole){
+    document.getElementById(selectedRole+'-identity').style.display='block';
+    // Re-populate TAMISEMI dropdowns if returning there
+    if(selectedRole==='tamisemi'){
+      var tr2=document.getElementById('tamisemi-region');
+      tr2.innerHTML='<option value="">&#8212; All regions &#8212;</option>';
+      Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; tr2.appendChild(o); });
+      var td2=document.getElementById('tamisemi-district');
+      td2.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+      tr2.onchange=function(){
+        td2.innerHTML='<option value="">&#8212; All districts &#8212;</option>';
+        if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; td2.appendChild(o); });
+      };
+    }
+    if(selectedRole==='lga'){
+      var lr=document.getElementById('lga-region');
+      lr.innerHTML='<option value="">&#8212; Select &#8212;</option>';
+      Object.keys(H).forEach(function(r){ var o=document.createElement('option'); o.value=o.textContent=r; lr.appendChild(o); });
+      var ld=document.getElementById('lga-district');
+      lr.onchange=function(){
+        ld.innerHTML='<option value="">&#8212; Select &#8212;</option>';
+        if(this.value&&H[this.value]) Object.keys(H[this.value]).forEach(function(d){ var o=document.createElement('option'); o.value=o.textContent=d; ld.appendChild(o); });
+        populateLgaWards();
+      };
+      ld.onchange=function(){ populateLgaWards(); };
+      populateLgaWards();
+    }
+  }
+  document.getElementById('s2-err').style.display='none';
+  setStep(2);
+}
+document.getElementById('obs-change-btn').addEventListener('click', goBackToIdentity);
+document.getElementById('tam-change-btn').addEventListener('click', goBackToIdentity);
+
 // ── TAMISEMI ──
 function enterTamisemi(){
   var d=db(); var groups=d.groups||[];
@@ -1496,7 +1547,7 @@ function renderTamisemi(groups){
       html+='<div style="overflow-x:auto;margin-top:.75rem"><table class="tbl" style="font-size:12px">'+
         '<thead><tr>'+
         '<th>Ward</th><th class="num">CMGs</th><th class="num">Loan (TZS)</th><th class="num">Repaid</th><th class="num">Outstanding</th>'+
-        STATUS_ORDER.map(function(s){ return '<th class="num" style="color:'+STATUS_CFG[s].color+'">'+STATUS_CFG[s].label+'</th>'; }).join('')+
+        STATUS_ORDER_TABLE.map(function(s){ return '<th class="num" style="color:'+STATUS_CFG[s].color+'">'+STATUS_CFG[s].label+'</th>'; }).join('')+
         '</tr></thead><tbody>';
 
       Object.keys(tree[region][district]).sort().forEach(function(ward){
@@ -1508,7 +1559,7 @@ function renderTamisemi(groups){
           '<td class="num">'+fmtS(wAgg.totLoan)+'</td>'+
           '<td class="num" style="color:#15803d">'+fmtS(wAgg.totRep)+'</td>'+
           '<td class="num" style="color:#b45309">'+fmtS(wAgg.totOut)+'</td>'+
-          STATUS_ORDER.map(function(s){ return '<td class="num">'+(wAgg.counts[s]||0)+'</td>'; }).join('')+
+          STATUS_ORDER_TABLE.map(function(s){ return '<td class="num">'+(wAgg.counts[s]||0)+'</td>'; }).join('')+
           '</tr>';
       });
       html+='</tbody></table></div>';
